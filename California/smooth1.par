@@ -1,0 +1,4 @@
+fx=85
+fy=85
+infile=mask.grd
+outfile=mask_smooth.grd

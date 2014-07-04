@@ -1,0 +1,4 @@
+infile=cratons.grd
+outfile=cratons_smooth.grd
+fx=239
+fy=239

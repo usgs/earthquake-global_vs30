@@ -1,6 +1,7 @@
 include ../Constants.mk
 
-LIBINC = -L$(GMTLIB) -L$(CDFLIB)
+LIBPATH = -L$(GMTLIB) -L$(CDFLIB)
+INCPATH = -I$(GMTINC) -I$(CDFINC)
 LINKOPT += -lgmt -lnetcdf
 
 .PHONY: all clean veryclean
@@ -13,13 +14,13 @@ clean :
 veryclean : clean
 
 smooth : smooth.c getpar.o
-	cc -o $@ $^ -I$(GMTINC) $(LIBINC) $(LINKOPT)
+	cc -o $@ $^ $(INCPATH) $(LIBPATH) $(LINKOPT)
 
 insert_grd : insert_grd.c getpar.o
-	cc -o $@ $^ -I$(GMTINC) $(LIBINC) $(LINKOPT)
+	cc -o $@ $^ $(INCPATH) $(LIBPATH) $(LINKOPT)
 
 grad2vs30 : grad2vs30.c getpar.o
-	cc -o $@ $^ -I$(GMTINC) $(LIBINC) $(LINKOPT)
+	cc -o $@ $^ $(INCPATH) $(LIBPATH) $(LINKOPT)
 
 getpar.o : getpar.c libget.h
 	cc -c getpar.c

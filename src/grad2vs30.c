@@ -42,7 +42,7 @@ const float vs30_max = 900;
  * Columns are: vs30_min vs30_max slope_min slope_max
  */
 const size_t rows_active = 6;
-float active_table[rows_active][4] = 
+float active_table[6][4] = 
         {{180, 240, 3.0e-4,  3.5e-3},
          {240, 300, 3.5e-3,  0.01},
          {300, 360, 0.01,    0.018},
@@ -51,7 +51,7 @@ float active_table[rows_active][4] =
          {620, 760, 0.10,    0.14}};
 
 const size_t rows_craton = 6;
-float craton_table[rows_craton][4] = 
+float craton_table[6][4] = 
         {{180, 240, 2.0e-5,  2.0e-3},
          {240, 300, 2.0e-3,  4.0e-3},
          {300, 360, 4.0e-3,  7.2e-3},

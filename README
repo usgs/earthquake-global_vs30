@@ -26,15 +26,15 @@ custom programming.
 PREREQUISITES AND CONFIGURATION
 -------------------------------
 Before starting, you should review the constants in Constants.mk. In
-particular, make sure CDFLIB, GMTLIB, and GMTINC are set correctly
-for your system.
+particular, make sure CDFLIB, CDFINC, GMTLIB, and GMTINC are set 
+correctly for your system.
 
 You will need to have certain software installed and within your
 current search path. The required software is:
 
-CURL -- a utility to transfer data from a server via HTTP or other
-protocols; if it isn't on your system, you can install it with a 
-package manager, orit can be had from various sources, but the main 
+CURL -- (or curl) a utility to transfer data from a server via HTTP or 
+other protocols; if it isn't on your system, you can install it with a 
+package manager, or it can be had from various sources, but the main 
 one is http://curl.haxx.se.
 
 GMT/NetCDF -- The Generic Mapping Tools package must be installed, and
@@ -42,10 +42,12 @@ NetCDF with it. GMT can be downloaded from: http://gmt.soest.hawaii.edu/.
 Get version 4 -- this software hasn't been tested with version 5. Make 
 sure to install the full-resolution shoreline database.
 
-The gdal (Geospatial Data Abstraction Library) package must be available. 
+The GDAL (Geospatial Data Abstraction Library) package must be available. 
+You will need at least version 1.9 -- earlier versions, like 1.4 will not
+work. You will need to set a path to the gdal binaries in Constants.mk. 
 In particular, the programs gdal_rasterize and gdal_translate are used 
-herein. Gdal can be installed by most package manabers, or can be found 
-at www.gdal.org.
+herein. Gdal can be installed by most package managers, but they often 
+have very old versions. The software can also be found at www.gdal.org.
 
 
 MAKING THE MAPS

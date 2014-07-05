@@ -3,8 +3,8 @@
 #
 
 #
-# Set these to the directories where libnetcdf, libgmt, and the GMT
-# include files reside, respectively.
+# Set these to the directories where libnetcdf, the CDF include file,
+# libgmt, and the GMT include files reside, respectively.
 #
 CDFLIB  = /usr/local/lib
 CDFINC  = /usr/local/include

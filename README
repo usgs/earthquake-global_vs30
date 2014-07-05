@@ -49,6 +49,9 @@ In particular, the programs gdal_rasterize and gdal_translate are used
 herein. Gdal can be installed by most package managers, but they often 
 have very old versions. The software can also be found at www.gdal.org.
 
+If you have runtime problems with the C programs ("smooth", "insert_grd",
+"grad2vs30"), have a look at the STATIC variable in Constants.mk
+
 
 MAKING THE MAPS
 ---------------

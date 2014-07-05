@@ -25,6 +25,16 @@ CURL=CURL
 GDAL_PATH=/opt/local/bin
 
 #
+# Sometimes the C programs in src will compile but die at runtime
+# due to obscure, hard to diagnose dynamic library problems,
+# usually having to do with -lgmt or -lnetcdf. If that happens
+# you can try setting the STATIC variable below to "-static":
+#
+# STATIC = -static
+#
+STATIC =
+
+#
 # The region for which we have a DEM (GMTED2010); this defines
 # the extent of the global map.
 #

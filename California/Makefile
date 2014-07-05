@@ -114,11 +114,11 @@ mask.grd : vs30_ext_h2o600.grd
 #
 # The CA Vs30 is NaN in water (including lakes, rivers, etc) and outside CA. So 
 # make a landmask wet=1 dry = 0. Then set all the water areas to 600 and do an
-# XOR (B if A == NaN, else A) with the Vs30 grid -- that will leave wet = 600,
-# dry areas inside CA with the Vs30, and dry outside CA as 0.
+# ANE (NaN if A and B == NaN, B if A == NaN, else A) with the Vs30 grid -- that 
+# will leave wet = 600, dry areas inside CA with the Vs30, and dry outside CA as 0.
 #
 vs30_ext_h2o600.grd : vs30_$(RES)c_ext.grd landmask.grd
-	grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL XOR = vs30_ext_h2o600.grd
+	grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL AND = vs30_ext_h2o600.grd
 
 landmask.grd : 
 	grdlandmask -V -R$(CA_EXT_REGION) -I$(RES)c -Glandmask.grd -Df -N1/0/0/0/0

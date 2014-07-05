@@ -2,7 +2,7 @@ include ../Constants.mk
 
 LIBPATH = -L$(GMTLIB) -L$(CDFLIB)
 INCPATH = -I$(GMTINC) -I$(CDFINC)
-LINKOPT += -lgmt -lnetcdf
+LINKOPT += -static -lgmt -lnetcdf -lm
 
 .PHONY: all clean veryclean
 

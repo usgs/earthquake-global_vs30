@@ -62,7 +62,7 @@ gmted_global.grd : elev/gmted_global.bil
 # Convert the DEM to .bil:
 #
 elev/gmted_global.bil : elev/md30_grd
-	gdal_translate -of EHdr elev/md30_grd elev/gmted_global.bil
+	$(GDAL_PATH)/gdal_translate -of EHdr elev/md30_grd elev/gmted_global.bil
 
 #
 # Unzip the DEM; we have to touch the dir and files because they
@@ -106,7 +106,7 @@ cratons.grd : cratons.bil
 # Create the craton file from the shape files:
 #
 cratons.bil : cratons/cratons.shp
-	gdal_rasterize -burn 1 -of EHdr -init 0 -te $(GXMIN) $(GYMIN) $(GXMAX) $(GYMAX) -tr $(RES_DD) $(RES_DD) -ot Byte cratons/cratons.shp cratons.bil
+	$(GDAL_PATH)/gdal_rasterize -burn 1 -of EHdr -init 0 -te $(GXMIN) $(GYMIN) $(GXMAX) $(GYMAX) -tr $(RES_DD) $(RES_DD) -ot Byte cratons/cratons.shp cratons.bil
 
 cratons/cratons.shp : cratons.tgz
 	tar xvmf cratons.tgz

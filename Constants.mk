@@ -7,6 +7,7 @@
 # include files reside, respectively.
 #
 CDFLIB  = /usr/local/lib
+CDFINC  = /usr/local/include
 GMTLIB  = /usr/local/lib
 GMTINC  = /usr/local/include
 
@@ -16,6 +17,12 @@ GMTINC  = /usr/local/include
 # from http://curl.haxx.se.
 #
 CURL=CURL
+
+#
+# The path leading to the gdal binaries -- in particular,
+# gdal_rasterize and gdal_translate
+#
+GDAL_PATH=/opt/local/bin
 
 #
 # The region for which we have a DEM (GMTED2010); this defines

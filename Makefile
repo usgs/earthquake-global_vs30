@@ -11,7 +11,8 @@
 INSERT_MAPS = Slope \
               California \
               PNW \
-              Utah
+              Utah \
+			  Japan
 
 #
 # This should be a complete list of subdirectories so that
@@ -22,7 +23,8 @@ MKDIRS = src \
          Slope \
          California \
          PNW \
-         Utah
+         Utah \
+		 Japan
 
 MKDIRS_CLEAN = $(patsubst %,%.clean,$(MKDIRS))
 MKDIRS_VCLEAN = $(patsubst %,%.vclean,$(MKDIRS))

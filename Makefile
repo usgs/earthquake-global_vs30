@@ -12,7 +12,8 @@ INSERT_MAPS = Slope \
               California \
               PNW \
               Utah \
-			  Japan
+			  Japan \
+			  Taiwan
 
 #
 # This should be a complete list of subdirectories so that

@@ -3,8 +3,9 @@ for inserting the Utah geology-based Vs30 map into the global Vs30 map.
 See the Makefile for specifics of the processing.
 
 To create the necessary files and insert them into the global map, run
-make in the Slope directory first, then in the California directory,
-then in the PNW directory, and then here you can simply issue the command:
+make in the Slope directory first, then in the other directories that 
+you want included in the map, and then here you can simply issue the 
+command:
 
 	% make
 

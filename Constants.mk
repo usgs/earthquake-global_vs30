@@ -16,7 +16,7 @@ GMTINC  = /usr/local/include
 # can easily install it with a package manager, or it can be had 
 # from http://curl.haxx.se.
 #
-CURL=CURL
+CURL=curl
 
 #
 # The path leading to the gdal binaries -- in particular,

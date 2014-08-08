@@ -26,10 +26,11 @@ UTAH_EXT_REGION = -114.7/-108.2/36.3/42.9
 #
 # all : ../$(OUTGRD)
 #
-
-../$(OUTGRD) : $(OUTGRD)
-	$(RM) $(INGRD)
-	cp $< ..
+#
+#../$(OUTGRD) : $(OUTGRD)
+#	$(RM) $(INGRD)
+#	cp $< ..
+#
 
 plots : plot_base_map plot_clip_mask plot_smooth_clip_mask plot_weights \
 	plot_final_map_wus plot_raw_map
@@ -53,16 +54,6 @@ veryclean : clean
 $(OUTGRD) : $(INGRD) ut_ext.grd weights.grd ../src/insert_grd \
             insert_ut.par
 	../src/insert_grd par=insert_ut.par grid1=$(INGRD) gout=$(OUTGRD)
-
-#################################
-#
-# This is the fallback if we don't find ../global_vs30*.grd.
-#
-../global_vs30.grd : ../Slope/global_vs30.grd
-	cp $< $@
-
-../Slope/global_vs30.grd :
-	$(MAKE) -C ../Slope global_vs30.grd
 
 #
 # We have values that range from 0 to 1. Areas outside the border will have 
@@ -124,16 +115,10 @@ $(MYEXT)_$(RES)c.grd : utah6_geology_60s.grd
 utah6_geology_60s.grd :
 	echo "Utah grid file utah6_geology_60s.grd must be supplied."
 
+#################################
 #
+# Plots
 #
-#
-../src/smooth :
-	$(MAKE) -C ../src smooth
-
-../src/insert_grd :
-	$(MAKE) -C ../src insert_grd
-
-
 plot_base_map : base.png
 
 plot_clip_mask : clipmask.png

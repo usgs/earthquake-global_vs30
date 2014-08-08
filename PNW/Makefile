@@ -27,10 +27,11 @@ PNW_EXT_REGION = -125.925/-115.45/41/50
 #
 # all : ../$(OUTGRD)
 #
-
-../$(OUTGRD) : $(OUTGRD)
-	$(RM) $(INGRD)
-	cp $< ..
+#
+#../$(OUTGRD) : $(OUTGRD)
+#	$(RM) $(INGRD)
+#	cp $< ..
+#
 
 plots : plot_base_map plot_clip_mask plot_smooth_clip_mask \
         plot_clip_mask_2 plot_weights plot_final_map_wus
@@ -56,16 +57,6 @@ veryclean : clean
 $(OUTGRD) : $(INGRD) waor_ext.grd weights.grd \
             ../src/insert_grd insert_waor.par
 	../src/insert_grd par=insert_waor.par grid1=$(INGRD) gout=$(OUTGRD)
-
-#################################
-#
-# This is the fallback if we don't find ../global_vs30*.grd.
-#
-../global_vs30.grd : ../Slope/global_vs30.grd
-	cp $< $@
-
-../Slope/global_vs30.grd :
-	$(MAKE) -C ../Slope global_vs30.grd
 
 #
 # We have values that range from 0 to 1. Areas outside the border will have 
@@ -150,13 +141,9 @@ waor45.grd :
 	echo "Washington/Oregon grid file waor45.grd must be supplied."
 
 ###################################
-../src/smooth :
-	$(MAKE) -C ../src make smooth
-
-../src/insert_grd :
-	$(MAKE) -C ../src make insert_grd
-
-
+#
+# Plots
+#
 plot_base_map : base.png
 
 plot_clip_mask : clipmask.png

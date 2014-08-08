@@ -75,19 +75,10 @@ WEIGHTS_CPT = ../Misc/weights.cpt
 #
 WATER = 600
 
-#
-# Identify the target into which we will insert the regional maps. 
-# If the target isn't there, set it to the base target "global_vs30.grd"
-#
-INGRD = $(wildcard ../global_vs30*.grd)
-ifeq ($(strip $(INGRD)),)
-        INGRD = ../global_vs30.grd
-endif
+# Don't mess with this definition -- the blank lines are necessary
+define N
 
-#
-# Add this region's extension to the base global file name
-# to create the output file name
-#
-OUTGRD = $(basename $(notdir $(INGRD)))_$(MYEXT).grd
+
+endef
 
 # End

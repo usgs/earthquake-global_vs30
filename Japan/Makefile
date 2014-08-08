@@ -30,10 +30,11 @@ SHAPE_BASE = Z-V2-JAPAN-AMP-VS400_M250-SHAPE
 #
 # all : ../$(OUTGRD)
 #
-
-../$(OUTGRD) : $(OUTGRD)
-	$(RM) $(INGRD)
-	cp $< ..
+#
+#../$(OUTGRD) : $(OUTGRD)
+#	$(RM) $(INGRD)
+#	cp $< ..
+#
 
 plots :  plot_raw_map plot_weights plot_final_map
 
@@ -59,16 +60,6 @@ veryclean : clean
 $(OUTGRD) : $(INGRD) japan.grd weights.grd ../src/insert_grd \
             insert_jp.par
 	../src/insert_grd par=insert_jp.par grid1=$(INGRD) gout=$(OUTGRD)
-
-#################################
-#
-# This is the fallback if we don't find ../global_vs30*.grd.
-#
-../global_vs30.grd : ../Slope/global_vs30.grd
-	cp $< $@
-
-../Slope/global_vs30.grd :
-	$(MAKE) -C ../Slope global_vs30.grd
 
 #
 # Make a weighted clipping mask; this is trivial in this case
@@ -98,13 +89,10 @@ shape/$(SHAPE_BASE).tar.gz :
 	mkdir -p shape;
 	$(CURL) http://www.j-shis.bosai.go.jp/map/JSHIS2/data/Z/V2/JAPAN/AMP/VS400_M250/$(SHAPE_BASE).tar.gz > shape/$(SHAPE_BASE).tar.gz
 
+#################################
 #
+# Plots
 #
-#
-../src/insert_grd :
-	$(MAKE) -C ../src insert_grd
-
-
 plot_weights : weights.png
 
 plot_final_map : japan_region.png

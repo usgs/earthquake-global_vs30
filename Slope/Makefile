@@ -3,12 +3,6 @@
 #
 include ../Constants.mk
 
-# Don't mess with this -- the blank lines are necessary
-define N
-
-
-endef
-
 .PHONY: all clean veryclean
 
 OLD_GRD = $(wildcard ../global_vs30_*.grd)

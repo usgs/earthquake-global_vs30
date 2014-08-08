@@ -28,14 +28,15 @@ CA_EXT_REGION = -124.475/-114.025/32.05/43.0
          plot_clip_mask_2 plot_weights plot_final_map_wus
 
 #
-# Regional.mk has the target "all" in it:
+# Regional.mk has the targets "all" and ../$(OUTGRD) in it:
 #
 # all : ../$(OUTGRD)
 #
-
-../$(OUTGRD) : $(OUTGRD)
-	$(RM) $(INGRD)
-	cp $< ..
+#
+#../$(OUTGRD) : $(OUTGRD)
+#	$(RM) $(INGRD)
+#	cp $< ..
+#
 
 plots : plot_base_map plot_vs30_landmask plot_clip_mask plot_smooth_clip_mask \
         plot_clip_mask_2 plot_weights plot_final_map_wus
@@ -59,17 +60,6 @@ veryclean : clean
 $(OUTGRD) : $(INGRD) vs30_ext_h2o600.grd weights.grd \
                      ../src/insert_grd insert_$(MYEXT).par 
 	../src/insert_grd par=insert_$(MYEXT).par grid1=$(INGRD) gout=$(OUTGRD)
-
-#################################
-#
-# This is the fallback if we don't find ../global_vs30*.grd.
-#
-../global_vs30.grd : ../Slope/global_vs30.grd
-	cp $< $@
-
-../Slope/global_vs30.grd :
-	$(MAKE) -C ../Slope global_vs30.grd
-
 
 #################################
 #
@@ -143,15 +133,6 @@ vs30_$(RES)c.grd : Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd
 
 Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd :
 	echo "California grid file Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd must be supplied."
-
-#
-# These make sure the C programs are up to date
-#
-../src/smooth :
-	$(MAKE) -C ../src smooth
-
-../src/insert_grd :
-	$(MAKE) -C ../src insert_grd
 
 ###################################################
 #

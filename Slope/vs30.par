@@ -1,0 +1,4 @@
+gradient_file=global_grad.grd
+craton_file=cratons_smooth.grd
+landmask_file=global_landmask.grd
+output_file=global_vs30.grd

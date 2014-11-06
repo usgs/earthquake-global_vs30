@@ -64,19 +64,20 @@ $(OUTGRD) : $(INGRD) vs30_ext_h2o600.grd weights.grd \
 #################################
 #
 # We have values that range from 0 to 1. Areas outside the border will have 
-# values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, inside 
-# ranging from 0 to 0.5), multiply by 2 (making outside still < 0, inside ranging 
-# from 0 to 1.0), and then keep only positive values (making outside = 0, inside 
-# ranging from 0 to 1). 
+# values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, 
+# inside ranging from 0 to 0.5), multiply by 2 (making outside still < 0, 
+# inside ranging from 0 to 1.0), and then keep only positive values (making 
+# outside = 0, inside ranging from 0 to 1). 
 #
 weights.grd : mask_smooth_2.grd
 	grdmath -fg mask_smooth_2.grd 0.5 SUB 2 MUL DUP 0 GT MUL = weights.grd
 
 #
-# This is the smoothed grid, but it has anomalies in it from places where the Vs30
-# grid had NaNs that were not coincident with water in the GMT land mask. There 
-# also appear to be areas where there were non-NaN values outside the CA border.
-# To fix this, we re-binary (?) the mask, then smooth it again:
+# This is the smoothed grid, but it has anomalies in it from places where 
+# the Vs30 grid had NaNs that were not coincident with water in the GMT 
+# land mask. There also appear to be areas where there were non-NaN values 
+# outside the CA border. To fix this, we re-binary (?) the mask, then smooth 
+# it again:
 #
 mask_smooth_2.grd : mask_2.grd ../src/smooth smooth2.par
 	../src/smooth par=smooth2.par
@@ -102,10 +103,11 @@ mask.grd : vs30_ext_h2o600.grd
 	grdmath -fg vs30_ext_h2o600.grd 0 GT = mask.grd
 
 #
-# The CA Vs30 is NaN in water (including lakes, rivers, etc) and outside CA. So 
-# make a landmask wet=1 dry = 0. Then set all the water areas to 600 and do an
-# ANE (NaN if A and B == NaN, B if A == NaN, else A) with the Vs30 grid -- that 
-# will leave wet = 600, dry areas inside CA with the Vs30, and dry outside CA as 0.
+# The CA Vs30 is NaN in water (including lakes, rivers, etc) and outside CA. 
+# So make a landmask wet=1 dry = 0. Then set all the water areas to 600 and 
+# do an AND (NaN if A and B == NaN, B if A == NaN, else A) with the Vs30 
+# grid -- that will leave wet = 600, dry areas inside CA with the Vs30, and 
+# dry outside CA as 0.
 #
 vs30_ext_h2o600.grd : vs30_$(RES)c_ext.grd landmask.grd
 	grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL AND = vs30_ext_h2o600.grd

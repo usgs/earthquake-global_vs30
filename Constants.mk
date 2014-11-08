@@ -28,7 +28,7 @@ GDAL_PATH=/opt/local/bin
 # Sometimes the C programs in src will compile but die at runtime
 # due to obscure, hard to diagnose dynamic library problems,
 # usually having to do with -lgmt or -lnetcdf. If that happens
-# you can try setting the STATIC variable below to "-static":
+# you can try setting the STATIC macro below to "-static":
 #
 # STATIC = -static
 #

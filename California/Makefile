@@ -126,8 +126,8 @@ top.grd :
 
 #
 # Rescale to 30-second resolution. Should probably low pass filter first,
-# but the -Ql in grdsample does a bilinear average, which is similar has
-# a smoothing effect.
+# but the -Ql in grdsample does a bilinear average, which has a smoothing 
+# effect.
 #
 
 vs30_$(RES)c.grd : Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd
@@ -209,6 +209,6 @@ wus.png : wus_vs30.grd
 	pscoast -JM12 -R$(WUS_REGION) -O -N1 -N2 -W >> wus.ps
 	convert -rotate 90 wus.ps wus.png
 
-wus_vs30.grd : global_vs30*_$(MYEXT).grd
+wus_vs30.grd : ../$(OUTGRD)
 	grdcut -R$(WUS_REGION) $< -G$@
 

@@ -115,7 +115,7 @@ japan_region.png : japan_region.grd
 	pscoast -JM12 -R$(JP_REGION) -O -Df -N1 -N2 -W >> japan_region.ps
 	convert -trim -density 300x300 -rotate 90 japan_region.ps japan_region.png
 
-japan_region.grd : global_vs30*_$(MYEXT).grd
+japan_region.grd : ../$(OUTGRD)
 	grdcut -R$(JP_REGION) $< -G$@
 
 # Plot the raw geology map using its own scale.

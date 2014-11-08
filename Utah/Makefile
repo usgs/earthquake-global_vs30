@@ -171,7 +171,7 @@ wus.png : wus_vs30.grd
 	pscoast -JM12 -R$(BIG_WUS_REGION) -O -Df -N1 -N2 -W >> wus.ps
 	convert -trim -density 300x300 -rotate 90 wus.ps wus.png
 
-wus_vs30.grd : global_vs30*_$(MYEXT).grd
+wus_vs30.grd : ../$(OUTGRD)
 	grdcut -R$(BIG_WUS_REGION) $< -G$@
 
 # Plot the raw geology map using its own scale.

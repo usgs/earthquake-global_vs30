@@ -16,8 +16,8 @@ MYNAME = Pacific Northwest
 #
 include ../Regional.mk
 
-PNW_BASE_REGION = -124.925/-116.45/42/49
-PNW_EXT_REGION = -125.925/-115.45/41/50
+PNW_BASE_REGION = -125.144158614/-116.462158614/41.995401663/49.083401663
+PNW_EXT_REGION = -126/-116/41/50
 
 .PHONY: all plots clean clean_plots veryclean plot_base_map plot_clip_mask \
         plot_smooth_clip_mask plot_clip_mask_2 plot_weights plot_final_map_wus
@@ -33,45 +33,44 @@ PNW_EXT_REGION = -125.925/-115.45/41/50
 #	cp $< ..
 #
 
-plots : plot_base_map plot_clip_mask plot_smooth_clip_mask \
-        plot_clip_mask_2 plot_weights plot_final_map_wus
+plots : plot_base_map plot_ext_map plot_clip_mask plot_smooth_clip_mask \
+        plot_clip_mask_2 plot_weights plot_final_map_waor plot_final_map_wus
 
 clean : clean_plots
-	$(RM) waor45_600.grd $(MYEXT)_$(RES)c.grd north.grd south.grd east.grd \
-              west.grd waor_ext.grd landmask.grd mask.grd \
+	$(RM) orwash20c_600.grd $(MYEXT)_$(RES)c.grd north.grd south.grd east.grd \
+              west.grd waor_ext.grd mask.grd \
               mask_smooth.grd mask_2.grd mask_smooth_2.grd \
               weights.grd 
 
 clean_plots :
 	$(RM) *.ps *.png
-	$(RM) wus_vs30.grd
+	$(RM) wus_vs30.grd waor_embedded.grd
 
 veryclean : clean
 	$(RM) global_vs30*_$(MYEXT).grd
 
 #################################
 #
-# Run the insert program; this will insert the PNW map into the global grid that
-# already has the CA map inserted:
+# Run the insert program; this will insert the PNW map into the global grid 
+# that already has the CA map inserted:
 #
-$(OUTGRD) : $(INGRD) waor_ext.grd weights.grd \
-            ../src/insert_grd insert_waor.par
-	../src/insert_grd par=insert_waor.par grid1=$(INGRD) gout=$(OUTGRD)
+$(OUTGRD) : $(INGRD) $(MYEXT)_$(RES)c.grd weights.grd ../src/insert_grd
+	../src/insert_grd grid1=$(INGRD) grid2=$(MYEXT)_$(RES)c.grd gout=$(OUTGRD) gmask=weights.grd
 
 #
 # We have values that range from 0 to 1. Areas outside the border will have 
-# values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, inside 
-# ranging from 0 to 0.5), multiply by 2 (making outside still < 0, inside ranging 
-# from 0 to 1.0), and then keep only positive values (making outside = 0, inside 
-# ranging from 0 to 1). 
+# values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, 
+# inside ranging from 0 to 0.5), multiply by 2 (making outside still < 0, 
+# inside ranging from 0 to 1.0), and then keep only positive values (making 
+# outside = 0, inside ranging from 0 to 1). 
 #
 weights.grd : mask_smooth_2.grd
 	grdmath -fg mask_smooth_2.grd 0.5 SUB 2 MUL DUP 0 GT MUL = weights.grd
 
 #
-# This is the smoothed grid, but it has anomalies in it from places where the Vs30
-# grid had lakes inside the state borders.  To fix this, we re-binary (?) the mask, then 
-# smooth it again:
+# This is the smoothed grid, but it has anomalies in it from places where 
+# the Vs30 grid is 600 inside the borders.  To fix this, we 
+# re-binary (?) the mask, then smooth it again:
 #
 
 mask_smooth_2.grd : mask_2.grd ../src/smooth smooth2.par
@@ -91,54 +90,55 @@ mask_smooth.grd : mask.grd ../src/smooth smooth1.par
 	../src/smooth par=smooth1.par
 
 #
-# The PNW Vs30 is now 600 in water (including lakes, rivers, etc) and outside WA/OR. So 
-# make a landmask wet=1 dry = 0. Then, in another grid, set all the non-600 areas to 1. 
-# Then add the two together and set > 1 to 1.
+# The PNW Vs30 is now 600 everywhere outside of known geology. So now we
+# make a mask in which 600 -> 0, and everything else -> 1.
 #
-mask.grd : landmask.grd waor_ext.grd 
-	grdmath landmask.grd waor_ext.grd $(WATER) NEQ ADD 0 GT = mask.grd
+mask.grd : $(MYEXT)_$(RES)c.grd 
+	grdmath $(MYEXT)_$(RES)c.grd $(WATER) NEQ = mask.grd
 
-landmask.grd :
-	grdlandmask -V -R-125.925/-115.45/41/50 -I$(RES)c -Glandmask.grd -Df -N1/0/0/0/0
+#
+# Rescale to 30-second resolution and shift the map to make it co-register
+# with the global grid. We should really filter here, but we want to
+# preserve the quantized Vs30 values, and GMT's median and mode filters
+# (grdfilter) don't seem to work right. I should probably write a program
+# to do this.
+#
+$(MYEXT)_$(RES)c.grd : waor_ext.grd
+	grdfilter -I$(RES)c -R$(PNW_EXT_REGION) -D0 -Fm0.016 waor_ext.grd -G$(MYEXT)_$(RES)c.grd
+#	grdsample -Qn -I$(RES)c -fg -R$(PNW_EXT_REGION) waor_ext.grd -G$(MYEXT)_$(RES)c.grd
 
 #
 # In this map, 600 is used as water/unknown geology. The map is kind of tight
 # so we paste a 1-degree chunk of 600s to each side:
 #
-waor_ext.grd : $(MYEXT)_$(RES)c.grd north.grd south.grd west.grd east.grd
-	grdpaste $(MYEXT)_$(RES)c.grd north.grd -Gtmp.grd
+waor_ext.grd : orwash20c_600.grd north.grd south.grd west.grd east.grd
+	grdpaste orwash20c_600.grd north.grd -Gtmp.grd
 	grdpaste tmp.grd south.grd -Gwaor_ext.grd
 	grdpaste west.grd waor_ext.grd -Gtmp.grd
 	grdpaste tmp.grd east.grd -Gwaor_ext.grd
 	$(RM) tmp.grd
 
 north.grd :
-	grdmath -R-124.925/-116.45/49/50 -I$(RES)c $(WATER) = north.grd
+	grdmath -R-125.144158614/-116.462158614/49.083401663/50.083401663 -I20c $(WATER) = north.grd
 
 south.grd :
-	grdmath -R-124.925/-116.45/41/42 -I$(RES)c $(WATER) = south.grd
+	grdmath -R-125.144158614/-116.462158614/40.995401663/41.995401663 -I20c $(WATER) = south.grd
 
 west.grd :
-	grdmath -R-125.925/-124.925/41/50 -I$(RES)c $(WATER) = west.grd
+	grdmath -R-126.144158614/-125.144158614/40.995401663/50.083401663 -I20c $(WATER) = west.grd
 
 east.grd :
-	grdmath -R-116.45/-115.45/41/50 -I$(RES)c $(WATER) = east.grd
+	grdmath -R-116.462158614/-115.462158614/40.995401663/50.083401663 -I20c $(WATER) = east.grd
 
 #
-# Rescale to 30-second resolution and shift the map to make it co-register
-# with the global grid.
+# This grid uses NaN as water and unknown gelolgy, but we want 600, so 
+# we fix that
 #
-$(MYEXT)_$(RES)c.grd : waor45_600.grd
-	grdsample -Ql0.1 -I$(RES)c -fg -R$(PNW_BASE_REGION) waor45_600.grd -G$(MYEXT)_$(RES)c.grd
+orwash20c_600.grd : orwash20c.grd
+	grdmath orwash20c.grd 600 AND = orwash20c_600.grd
 
-#
-# This grid uses 603 as water, but we want 600, so we fix that
-#
-waor45_600.grd : waor45.grd
-	grdmath waor45.grd DUP 603 EQ 3 MUL SUB = waor45_600.grd
-
-waor45.grd :
-	echo "Washington/Oregon grid file waor45.grd must be supplied."
+orwash20c.grd :
+	echo "Washington/Oregon grid file orwash20c.grd must be supplied."
 
 ###################################
 #
@@ -146,23 +146,35 @@ waor45.grd :
 #
 plot_base_map : base.png
 
+plot_ext_map : ext.png
+
 plot_clip_mask : clipmask.png
 
-plot_smooth_clip_mask : landmask_smooth.png
+plot_smooth_clip_mask : clipmask_smooth.png
 
 plot_clip_mask_2 : clipmask_2.png
 
 plot_weights : weights.png
 
+plot_final_map_waor : waor.png
+
 plot_final_map_wus : wus.png
 
 # Plot the base Vs30 Map:
  
-base.png : $(MYEXT)_$(RES)c.grd
+base.png : orwash20c.grd
 	grdimage $< -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > base.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> base.ps
 	pscoast -JM12 -R$(PNW_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
 	convert -trim -density 300x300 -rotate 90 base.ps base.png
+
+# Plot the extended Vs30 map:
+
+ext.png : $(MYEXT)_$(RES)c.grd 
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > ext.ps
+	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> ext.ps
+	pscoast -JM12 -R$(PNW_EXT_REGION) -Df -O -N1 -N2 -W >> ext.ps
+	convert -trim -density 300x300 -rotate 90 ext.ps ext.png
  
 # Plot the clipping mask:
  
@@ -174,11 +186,11 @@ clipmask.png : mask.grd
  
 # Plot the smoothed clipping mask:
  
-landmask_smooth.png : mask_smooth.grd
-	grdimage mask_smooth.grd -JM12 -C$(WEIGHTS_CPT) -Ba4d/a2eWSen -K > landmask_smooth.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> landmask_smooth.ps
-	pscoast -JM12 -R$(PNW_EXT_REGION) -Df -O -N1 -N2 -W >> landmask_smooth.ps
-	convert -trim -rotate 90 landmask_smooth.ps landmask_smooth.png
+clipmask_smooth.png : mask_smooth.grd
+	grdimage mask_smooth.grd -JM12 -C$(WEIGHTS_CPT) -Ba4d/a2eWSen -K > clipmask_smooth.ps
+	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> clipmask_smooth.ps
+	pscoast -JM12 -R$(PNW_EXT_REGION) -Df -O -N1 -N2 -W >> clipmask_smooth.ps
+	convert -trim -rotate 90 clipmask_smooth.ps clipmask_smooth.png
  
 # Plot the rescaled clipping mask.
  
@@ -196,7 +208,7 @@ weights.png : weights.grd
 	pscoast -JM12 -R$(PNW_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 weights.ps weights.png
  
-# Plot the new Vs30 map:
+# Plot the new Vs30 map in the western US region:
  
 wus.png : wus_vs30.grd
 	grdimage wus_vs30.grd -JM12 -C$(VS30_CPT) -Ba6d/a4eWSen -K > wus.ps
@@ -204,5 +216,16 @@ wus.png : wus_vs30.grd
 	pscoast -JM12 -R$(WUS_REGION) -O -Df -N1 -N2 -W >> wus.ps
 	convert -trim -density 300x300 -rotate 90 wus.ps wus.png
 
-wus_vs30.grd : global_vs30*_$(MYEXT).grd
+wus_vs30.grd : ../$(OUTGRD)
 	grdcut -R$(WUS_REGION) $< -G$@
+ 
+# Plot the new Vs30 map at the original scale:
+ 
+waor.png : waor_embedded.grd
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba6d/a4eWSen -K > waor.ps
+	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> waor.ps
+	pscoast -JM12 -R$(PNW_BASE_REGION) -O -Df -N1 -N2 -W >> waor.ps
+	convert -trim -density 300x300 -rotate 90 waor.ps waor.png
+
+waor_embedded.grd : ../$(OUTGRD)
+	grdcut -R$(PNW_BASE_REGION) $< -G$@

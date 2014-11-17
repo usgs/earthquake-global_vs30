@@ -61,10 +61,12 @@ BIG_WUS_REGION = -130.0/-107.0/31.0/50.0
 # 0.002083333333 degrees), so those are good choices; other resolutions will
 # require makefile modifications.
 #
-# RES = 30
-# RES_DD = 0.00833333333333
-RES = 15
-RES_DD = 0.004166666667
+RES = 30
+RES_DD = 0.00833333333333
+#RES = 15
+#RES_DD = 0.004166666667
+#RES = 7.5
+#RES_DD = 0.002083333333
 
 #
 # IRES is an integer version of RES. Normally it will be whatever

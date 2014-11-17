@@ -59,7 +59,7 @@ veryclean : clean
 # Insert the CA grid into the global grid found in the parent
 # directory
 #
-$(OUTGRD) : $(INGRD) vs30_ext_h2o600.grd weights.grd
+$(OUTGRD) : ../src/insert_grd $(INGRD) vs30_ext_h2o600.grd weights.grd
 	../src/insert_grd grid1=$(INGRD) grid2=vs30_ext_h2o600.grd gmask=weights.grd gout=$@
 
 #################################

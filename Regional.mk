@@ -68,7 +68,7 @@ endif
 #
 # These make sure the C programs are up to date
 #
-#../src/smooth :
+../src/smooth :
 	$(MAKE) -C ../src smooth
 
 ../src/insert_grd :

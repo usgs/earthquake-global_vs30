@@ -25,7 +25,8 @@ MKDIRS = src \
          California \
          PNW \
          Utah \
-		 Japan
+		 Japan \
+		 Taiwan
 
 MKDIRS_CLEAN = $(patsubst %,%.clean,$(MKDIRS))
 MKDIRS_VCLEAN = $(patsubst %,%.vclean,$(MKDIRS))

@@ -24,19 +24,6 @@ TW_REGION = $(TW_XMIN)/$(TW_XMAX)/$(TW_YMIN)/$(TW_YMAX)
 
 IS_FINER := $(shell [ $(IRES) -lt 30 ] && echo true)
 
-#
-# Pick one or the other map to insert.
-# According to Eric Thompson:
-# --Taiwan_Vs30_AW09gk_30c.grd uses a baseline model from topographic slope
-#   (Allen & Wald, 2009) and is then adjusted for the mean residual in each 
-#   geologic unit and then the residuals are kriged.
-# --Taiwan_Vs30_PRG_30c.grd uses a 'hybrid trend' with a slope that is allowed
-#   to vary by geologic unit. This model is closest to the later work on 
-#   California and elsewhere.
-#
-#TW_GRD_FILE = Taiwan_Vs30_AW09gk_30c.grd
-TW_GRD_FILE = Taiwan_Vs30_PRG_30c.grd
-
 .PHONY: all plots clean clean_plots veryclean
 
 #
@@ -53,7 +40,7 @@ TW_GRD_FILE = Taiwan_Vs30_PRG_30c.grd
 plots :  plot_raw_map plot_weights plot_final_map
 
 clean : clean_plots
-	$(RM) taiwan.grd weights.grd 
+	$(RM) taiwan.grd weights.grd tw_*c.grd
 
 clean_plots :
 	$(RM) *.ps *.png

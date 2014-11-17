@@ -38,6 +38,8 @@ CA_EXT_REGION = -124.475/-114.025/32.05/43.0
 #	cp $< ..
 #
 
+IS_COARSER := $(shell [ $(IRES) -gt 20 ] && echo true)
+
 plots : plot_base_map plot_vs30_landmask plot_clip_mask plot_smooth_clip_mask \
         plot_clip_mask_2 plot_weights plot_final_map_wus
 
@@ -57,9 +59,8 @@ veryclean : clean
 # Insert the CA grid into the global grid found in the parent
 # directory
 #
-$(OUTGRD) : $(INGRD) vs30_ext_h2o600.grd weights.grd \
-                     ../src/insert_grd insert_$(MYEXT).par 
-	../src/insert_grd par=insert_$(MYEXT).par grid1=$(INGRD) gout=$(OUTGRD)
+$(OUTGRD) : $(INGRD) vs30_ext_h2o600.grd weights.grd
+	../src/insert_grd grid1=$(INGRD) grid2=vs30_ext_h2o600.grd gmask=weights.grd gout=$@
 
 #################################
 #
@@ -70,7 +71,7 @@ $(OUTGRD) : $(INGRD) vs30_ext_h2o600.grd weights.grd \
 # outside = 0, inside ranging from 0 to 1). 
 #
 weights.grd : mask_smooth_2.grd
-	grdmath -fg mask_smooth_2.grd 0.5 SUB 2 MUL DUP 0 GT MUL = weights.grd
+	grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
 #
 # This is the smoothed grid, but it has anomalies in it from places where 
@@ -79,11 +80,11 @@ weights.grd : mask_smooth_2.grd
 # outside the CA border. To fix this, we re-binary (?) the mask, then smooth 
 # it again:
 #
-mask_smooth_2.grd : mask_2.grd ../src/smooth smooth2.par
-	../src/smooth par=smooth2.par
+mask_smooth_2.grd : mask_2.grd ../src/smooth
+	../src/smooth infile=mask_2.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
 mask_2.grd : mask_smooth.grd
-	grdmath mask_smooth.grd 0.5 GE = mask_2.grd
+	grdmath $< 0.5 GE = $@
 
 #
 # Smooth the mask. This will blur the border, but we'll fix that in a 
@@ -92,15 +93,15 @@ mask_2.grd : mask_smooth.grd
 # filter, which is 84 grid points, but we want an odd number. That means 
 # fx = fy = 85:
 #
-mask_smooth.grd : mask.grd ../src/smooth smooth1.par
-	../src/smooth par=smooth1.par
+mask_smooth.grd : mask.grd ../src/smooth 
+	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
 #
 # Make a mask where inside the borders = 1, outside = 0 (note that we
 # are not considering the coastline a "border".
 #
 mask.grd : vs30_ext_h2o600.grd
-	grdmath -fg vs30_ext_h2o600.grd 0 GT = mask.grd
+	grdmath -fg $< 0 GT = $@
 
 #
 # The CA Vs30 is NaN in water (including lakes, rivers, etc) and outside CA. 
@@ -110,28 +111,33 @@ mask.grd : vs30_ext_h2o600.grd
 # dry outside CA as 0.
 #
 vs30_ext_h2o600.grd : vs30_$(RES)c_ext.grd landmask.grd
-	grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL AND = vs30_ext_h2o600.grd
+	grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL AND = $@
 
 landmask.grd : 
-	grdlandmask -V -R$(CA_EXT_REGION) -I$(RES)c -Glandmask.grd -Df -N1/0/0/0/0
+	grdlandmask -V -R$(CA_EXT_REGION) -I$(RES)c -G$@ -Df -N1/0/0/0/0
 
 #
 # Paste a 1-degree chunk of NaNs to the top of the map:
 #
 vs30_$(RES)c_ext.grd : vs30_$(RES)c.grd top.grd
-	grdpaste vs30_$(RES)c.grd top.grd -Gvs30_$(RES)c_ext.grd
+	grdpaste vs30_$(RES)c.grd top.grd -G$@
 
 top.grd : 
 	grdmath -R-124.475/-114.025/41.9916666667/43.0 -I$(RES)c 0 0 NAN = top.grd
 
 #
-# Rescale to 30-second resolution. Should probably low pass filter first,
-# but the -Ql in grdsample does a bilinear average, which has a smoothing 
-# effect.
+# Rescale to proper resolution. If the output is coarser than the
+# input (20c), then we filter with a 3x3 gaussian filter; if the
+# output is finer than the input, we resample with bilinear interpolation
 #
 
+ifeq ($(IS_COARSER),true)
 vs30_$(RES)c.grd : Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd
-	grdsample -Ql0.1 -I$(RES)c -fg Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd -Gvs30_$(RES)c.grd
+	grdfilter -I$(RES)c -D0 -Fg0.016 $< -G$@
+else
+vs30_$(RES)c.grd : Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd
+	grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
+endif
 
 Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd :
 	echo "California grid file Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd must be supplied."

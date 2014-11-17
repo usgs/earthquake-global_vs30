@@ -20,8 +20,8 @@ endif
 	cp global_vs30.grd ..
 
 global_vs30.grd : global_grad.grd global_landmask.grd cratons_smooth.grd \
-                  ../src/grad2vs30 vs30.par
-	../src/grad2vs30 par=vs30.par water=$(WATER)
+                  ../src/grad2vs30
+	../src/grad2vs30 gradient_file=global_grad.grd craton_file=cratons_smooth.grd landmask_file=global_landmask.grd output_file=global_vs30.grd water=$(WATER)
 
 clean :
 	$(RM) cratons.bil cratons.hdr cratons.grd cratons_smooth.grd \
@@ -55,8 +55,8 @@ gmted_global.grd : elev/gmted_global.bil
 #
 # Convert the DEM to .bil:
 #
-elev/gmted_global.bil : elev/md30_grd
-	$(GDAL_PATH)/gdal_translate -of EHdr elev/md30_grd elev/gmted_global.bil
+elev/gmted_global.bil : elev/md$(RES)_grd
+	$(GDAL_PATH)/gdal_translate -of EHdr elev/md$(RES)_grd elev/gmted_global.bil
 
 #
 # Unzip the DEM; we have to touch the dir and files because they
@@ -84,7 +84,7 @@ global_landmask.grd :
 # Smooth the craton file
 #
 cratons_smooth.grd : cratons.grd ../src/smooth
-	../src/smooth par=smooth.par
+	../src/smooth infile=cratons.grd fx=$(GLOBE_FX) fy=$(GLOBE_FY) outfile=cratons_smooth.grd
 
 
 #

@@ -117,3 +117,21 @@ See the file src/README and the source .c files for more information on
 insert_grd and the other programs available. In addition, the regional 
 Makefiles (for California, PNW, and Utah) have examples of their use.
 
+ACKNOWLEGEMENTS
+---------------
+The California map was provided by Eric Thompson and based on the map
+developed in Thompson et al. (2014) "A Vs30 Map for California with Geologic 
+and Topographic Constraints." BSSA, in press.
+
+The Utah map was provided by Kris Pankow of UUSS.
+
+The Washington/Oregon map was provided by Renate Hartog of UW.
+
+The map of Japan is downloaded from http://www.j-shis.bosai.go.jp/ (see
+the Japan Makefile for specifics of downloading). References are available
+at the web site.
+
+The Taiwan maps were provided by Eric Thompson based upon maps developed 
+in Thompson & Wald (2012) "Developing Vs30 Site-Condition Maps by Combining
+Observations with Geologic and Topographic Constraints." Presented at
+15WCEE, Lisbon, Portugal. 

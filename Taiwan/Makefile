@@ -22,6 +22,8 @@ TW_YMIN = 21.0
 TW_YMAX = 26.0
 TW_REGION = $(TW_XMIN)/$(TW_XMAX)/$(TW_YMIN)/$(TW_YMAX)
 
+IS_FINER := $(shell [ $(IRES) -lt 30 ] && echo true)
+
 #
 # Pick one or the other map to insert.
 # According to Eric Thompson:
@@ -65,23 +67,30 @@ veryclean : clean
 # Run the insert program; this will insert the Japan map into the 
 # global grid that may already have other maps inserted:
 #
-$(OUTGRD) : $(INGRD) taiwan.grd weights.grd ../src/insert_grd \
-            insert_tw.par
-	../src/insert_grd par=insert_tw.par grid1=$(INGRD) gout=$(OUTGRD)
+$(OUTGRD) : $(INGRD) taiwan.grd weights.grd ../src/insert_grd 
+	../src/insert_grd grid1=$(INGRD) grid2=taiwan.grd gmask=weights.grd gout=$@
 
 #
 # Make a weighted clipping mask; this is trivial in this case
 # because our region is entirely surrounded by water; the 
 # weights = 1 where we have Vs30, = 0 where we don't 
 #
-weights.grd : $(TW_GRD_FILE)
+weights.grd : tw_$(RES)c.grd
 	grdmath $< 0 AND 0 GT = $@
 
 #
 # Make the insert map, set NaNs to the water velocity
 #
-taiwan.grd : $(TW_GRD_FILE)
+taiwan.grd : tw_$(RES)c.grd
 	grdmath $< $(WATER) AND = $@
+
+ifeq ($(IS_FINER),true)
+tw_$(RES)c.grd : $(TW_GRD_FILE)
+	grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
+else
+tw_$(RES)c.grd : $(TW_GRD_FILE)
+	cp $< $@
+endif
 
 $(TW_GRD_FILE) : 
 	( echo "File $(TW_GRD_FILE) must be supplied." && false )

@@ -51,16 +51,15 @@ veryclean : clean
 # Run the insert program; this will insert the PNW map into the global grid that
 # already has the CA map inserted:
 #
-$(OUTGRD) : $(INGRD) ut_ext.grd weights.grd ../src/insert_grd \
-            insert_ut.par
-	../src/insert_grd par=insert_ut.par grid1=$(INGRD) gout=$(OUTGRD)
+$(OUTGRD) : $(INGRD) ut_ext.grd weights.grd ../src/insert_grd 
+	../src/insert_grd grid1=$(INGRD) grid2=ut_ext.grd gmask=weights.grd gout=$(OUTGRD)
 
 #
 # We have values that range from 0 to 1. Areas outside the border will have 
-# values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, inside 
-# ranging from 0 to 0.5), multiply by 2 (making outside still < 0, inside ranging 
-# from 0 to 1.0), and then keep only positive values (making outside = 0, inside 
-# ranging from 0 to 1). 
+# values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, 
+# inside ranging from 0 to 0.5), multiply by 2 (making outside still < 0, 
+# inside ranging from 0 to 1.0), and then keep only positive values (making 
+# outside = 0, inside ranging from 0 to 1). 
 #
 weights.grd : mask_smooth.grd
 	grdmath -fg mask_smooth.grd 0.5 SUB 2 MUL DUP 0 GT MUL = weights.grd
@@ -72,8 +71,8 @@ weights.grd : mask_smooth.grd
 # filter, which is 84 grid points, but we want an odd number. That means 
 # fx = fy = 85:
 #
-mask_smooth.grd : mask.grd ../src/smooth smooth.par
-	../src/smooth par=smooth.par
+mask_smooth.grd : mask.grd ../src/smooth 
+	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=mask_smooth.grd
 
 #
 # Make a clipping mask = 1 where we have Vs30, = 0 where we don't 

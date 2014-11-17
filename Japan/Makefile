@@ -57,9 +57,8 @@ veryclean : clean
 # Run the insert program; this will insert the Japan map into the 
 # global grid that may already have other maps inserted:
 #
-$(OUTGRD) : $(INGRD) japan.grd weights.grd ../src/insert_grd \
-            insert_jp.par
-	../src/insert_grd par=insert_jp.par grid1=$(INGRD) gout=$(OUTGRD)
+$(OUTGRD) : $(INGRD) japan.grd weights.grd ../src/insert_grd 
+	../src/insert_grd grid1=$(INGRD) grid2=japan.grd gmask=weights.grd gout=$(OUTGRD)
 
 #
 # Make a weighted clipping mask; this is trivial in this case

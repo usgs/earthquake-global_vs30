@@ -61,8 +61,46 @@ BIG_WUS_REGION = -130.0/-107.0/31.0/50.0
 # 0.002083333333 degrees), so those are good choices; other resolutions will
 # require makefile modifications.
 #
-RES = 30
-RES_DD = 0.00833333333333
+# RES = 30
+# RES_DD = 0.00833333333333
+RES = 15
+RES_DD = 0.004166666667
+
+#
+# IRES is an integer version of RES. Normally it will be whatever
+# RES is, but if RES is 7.5 we'll set it to 7, below, so that the
+# -gt/-lt style tests in other Makfiles will work
+#
+IRES = $(RES)
+
+#
+# Depending on the resolution, we want to set the width of the
+# smoothing filter (in grid points). Our defaults are to use
+# smoothing filters for the regions of 0.7x0.7 degrees (but these
+# are cut in half, to 0.35x0.35 degrees, by the processing), and
+# for the global grid the smoothing from active tectonic to
+# stable craton is over 2x2 degrees.
+#
+ifeq ($(RES), 7.5)
+# IRES gets reset to an integer
+IRES = 7
+REGION_FX = 339
+REGION_FY = 339
+GLOBE_FX = 959
+GLOBE_FY = 959
+else ifeq ($(RES), 15)
+REGION_FX = 169
+REGION_FY = 169
+GLOBE_FX = 479
+GLOBE_FY = 479
+else ifeq ($(RES), 30)
+REGION_FX = 85
+REGION_FY = 85
+GLOBE_FX = 239
+GLOBE_FY = 239
+else
+$(error Unknown grid resolution -- you must specify filter sizes.)
+endif
 
 #
 # cpt files needed for plotting

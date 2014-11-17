@@ -22,6 +22,8 @@ PNW_EXT_REGION = -126/-116/41/50
 .PHONY: all plots clean clean_plots veryclean plot_base_map plot_clip_mask \
         plot_smooth_clip_mask plot_clip_mask_2 plot_weights plot_final_map_wus
 
+IS_COARSER := $(shell [ $(IRES) -gt 20 ] && echo true)
+
 #
 # Regional.mk has the target "all" in it:
 #
@@ -73,8 +75,8 @@ weights.grd : mask_smooth_2.grd
 # re-binary (?) the mask, then smooth it again:
 #
 
-mask_smooth_2.grd : mask_2.grd ../src/smooth smooth2.par
-	../src/smooth par=smooth2.par
+mask_smooth_2.grd : mask_2.grd ../src/smooth
+	../src/smooth infile=mask_2.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=mask_smooth_2.grd
 
 mask_2.grd : mask_smooth.grd
 	grdmath mask_smooth.grd 0.5 GE = mask_2.grd
@@ -86,8 +88,8 @@ mask_2.grd : mask_smooth.grd
 # filter, which is 84 grid points, but we want an odd number. That means 
 # fx = fy = 85:
 #
-mask_smooth.grd : mask.grd ../src/smooth smooth1.par
-	../src/smooth par=smooth1.par
+mask_smooth.grd : mask.grd ../src/smooth
+	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=mask_smooth.grd
 
 #
 # The PNW Vs30 is now 600 everywhere outside of known geology. So now we
@@ -97,15 +99,19 @@ mask.grd : $(MYEXT)_$(RES)c.grd
 	grdmath $(MYEXT)_$(RES)c.grd $(WATER) NEQ = mask.grd
 
 #
-# Rescale to 30-second resolution and shift the map to make it co-register
-# with the global grid. We should really filter here, but we want to
-# preserve the quantized Vs30 values, and GMT's median and mode filters
-# (grdfilter) don't seem to work right. I should probably write a program
-# to do this.
+# Rescale to the proper resolution and shift the map to make it co-register
+# with the global grid. For a coarser grid, we want to filter, but we also
+# want to preserve the quantized Vs30 values, so we use a 3x3 median filter, 
+# which preserves most (but for some reason not all) of the Vs30 values.
+# For a finer grid, we just use grdsample with a nearest-neighbor sampling.
 #
+ifeq ($(IS_COARSER),true)
 $(MYEXT)_$(RES)c.grd : waor_ext.grd
 	grdfilter -I$(RES)c -R$(PNW_EXT_REGION) -D0 -Fm0.016 waor_ext.grd -G$(MYEXT)_$(RES)c.grd
-#	grdsample -Qn -I$(RES)c -fg -R$(PNW_EXT_REGION) waor_ext.grd -G$(MYEXT)_$(RES)c.grd
+else
+$(MYEXT)_$(RES)c.grd : waor_ext.grd
+	grdsample -Qn -I$(RES)c -fg -R$(PNW_EXT_REGION) waor_ext.grd -G$(MYEXT)_$(RES)c.grd
+endif
 
 #
 # In this map, 600 is used as water/unknown geology. The map is kind of tight

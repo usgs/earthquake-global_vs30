@@ -55,24 +55,24 @@ gmted_global.grd : elev/gmted_global.bil
 #
 # Convert the DEM to .bil:
 #
-elev/gmted_global.bil : elev/md$(RES)_grd
-	$(GDAL_PATH)/gdal_translate -of EHdr elev/md$(RES)_grd elev/gmted_global.bil
+elev/gmted_global.bil : elev/md$(GRES)_grd
+	$(GDAL_PATH)/gdal_translate -of EHdr elev/md$(GRES)_grd elev/gmted_global.bil
 
 #
 # Unzip the DEM; we have to touch the dir and files because they
 # are older than the archive that contains them, forcing make
 # to always repeat this (and all following) step(s)
 #
-elev/md$(RES)_grd : elev/md$(RES)_grd.zip
-	(cd elev && unzip md$(RES)_grd.zip && touch -c md$(RES)_grd && \
-         touch md$(RES)_grd/* )
+elev/md$(GRES)_grd : elev/md$(GRES)_grd.zip
+	(cd elev && unzip md$(GRES)_grd.zip && touch -c md$(GRES)_grd && \
+         touch md$(GRES)_grd/* )
 
 #
 # Get the DEM:
 #
-elev/md$(RES)_grd.zip :
+elev/md$(GRES)_grd.zip :
 	mkdir -p elev;
-	$(CURL) http://topotools.cr.usgs.gov/gmted_viewer/data/Grid_ZipFiles/md$(RES)_grd.zip > elev/md$(RES)_grd.zip 
+	$(CURL) http://topotools.cr.usgs.gov/gmted_viewer/data/Grid_ZipFiles/md$(GRES)_grd.zip > elev/md$(GRES)_grd.zip 
 
 #
 # Create the landmask:
@@ -117,3 +117,38 @@ cratons.tgz :
 
 ../src/grad2vs30 :
 	$(MAKE) -C ../src grad2vs30
+
+######################################################################
+# Make some plots
+######################################################################
+plot_cratons : cratons.png
+	
+plot_cratons_smooth : cratons_smooth.png
+
+plot_global_topo : global_topo.png
+
+plot_global_vs30 : global_vs30.png
+	
+cratons.png : cratons.grd
+	grdimage cratons.grd -JM18 -R-180/180/-56/72 -C$(WEIGHTS_CPT) -Ba24d/a12eWSen -K > cratons.ps
+	pscoast -JM18 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> cratons.ps
+#	psscale -D20/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> cratons.ps
+	convert -rotate 90 -density 300x300 -crop 2400x1400+100+950 cratons.ps cratons.png
+
+cratons_smooth.png : cratons_smooth.grd
+	grdimage cratons_smooth.grd -JM18 -R-130/-48/12/50 -C$(WEIGHTS_CPT) -Ba8d/a4eWSen -K > cratons_smooth.ps
+	pscoast -JM18 -R-130/-48/12/50 -Di -N1 -N2 -W -S128/128/255 -A500/0/2 -O -K >> cratons_smooth.ps
+	psscale -D19/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> cratons_smooth.ps
+	convert -rotate 90 -density 300x300 -crop 2700x1400+100+950 cratons_smooth.ps cratons_smooth.png
+	
+global_topo.png : gmted_global.grd
+	grdimage gmted_global.grd -JM20 -R-180/180/-56/72 -C../Misc/tan.cpt -Ba24d/a12eWSen -K > global_topo.ps
+	pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_topo.ps
+#	psscale -D21/4.3/9/0.5 -L -C../Misc/tan.cpt -O >> global_topo.ps
+	convert -rotate 90 -density 300x300 -crop 2700x1400+100+950 global_topo.ps global_topo.png
+
+global_vs30.png : global_vs30.grd
+	grdimage global_vs30.grd -JM20 -R-180/180/-56/72 -C../Misc/global.cpt -Ba24d/a12eWSen -K > global_vs30.ps
+	pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_vs30.ps
+	psscale -D21/4.3/9/0.5 -L -C../Misc/global.cpt -O >> global_vs30.ps
+	convert -rotate 90 -density 300x300 -crop 3000x1400+100+950 global_vs30.ps global_vs30.png

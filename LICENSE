@@ -1,7 +1,7 @@
 GlobalVs30 is a system for generating a global topographic-slope based
 Vs30 map and embedding custom regional maps within it.
 
-Copyright (c) 2014 by the United States Geological Survey.
+Copyright (c) 2014 and 2015 by the United States Geological Survey.
 Authors: C. Bruce Worden
 
 The following applies to all of the programs, libraries, modules,

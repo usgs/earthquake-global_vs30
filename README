@@ -135,3 +135,7 @@ The Taiwan maps were provided by Eric Thompson based upon maps developed
 in Thompson & Wald (2012) "Developing Vs30 Site-Condition Maps by Combining
 Observations with Geologic and Topographic Constraints." Presented at
 15WCEE, Lisbon, Portugal. 
+
+The getpar library was created by Robert W. Clayton of the California
+Institute of Technology, and later amended by several others (see
+source files for history). It is included by permission.

@@ -57,7 +57,8 @@ WUS_REGION = -130.0/-113.0/31.0/50.0
 BIG_WUS_REGION = -130.0/-107.0/31.0/50.0
 
 #
-# cpt files needed for plotting
+# cpt files needed for plotting; these are relative to the regional
+# map directories, not this top level directory
 #
 VS30_CPT = ../Misc/usa.cpt
 WEIGHTS_CPT = ../Misc/weights.cpt
@@ -99,6 +100,7 @@ TW_GRD_FILE = Taiwan_Vs30_PRG_30c.grd
 
 #
 # WARNING: The stuff below should only be edited if you really
+# know what you're doing
 #
 
 #
@@ -107,6 +109,12 @@ TW_GRD_FILE = Taiwan_Vs30_PRG_30c.grd
 # -gt/-lt style tests in other Makfiles will work
 #
 IRES = $(RES)
+
+#
+# GRES is the resolution string that is found in the file names
+# on the GMTED2010 site
+#
+GRES = $(RES)
 
 #
 # Depending on the resolution, we want to set the width of the
@@ -118,8 +126,9 @@ IRES = $(RES)
 # point to make the filter dimensions (in grid points) odd.
 #
 ifeq ($(RES), 7.5)
-# IRES gets reset to an integer
+# IRES and GRES get reset to integers for 7.5 second resolution
 IRES = 7
+GRES = 75
 REGION_FX = 339
 REGION_FY = 339
 GLOBE_FX = 959

@@ -6,8 +6,8 @@ then run make:
 	% make
 
 All of the programs in this directory use Rob Clayton's (Caltech)
-getpar package. This package allows you to given parameters on the
-command line of the form "parameter=value". You can also put the 
+getpar package. This package allows you to specify parameters on the
+command line in the form "parameter=value". You can also put the 
 parameters in a file (e.g., "mypars.par") and call the command with
 the option "par=parfile" (e.g., "par=mypars.par"). Or you can mix
 the parameters between a file and the command line. The advantage of 
@@ -19,12 +19,12 @@ The programs are:
 smooth -- parameters: "infile" (string), "outfile" (string), "fx" (uint), 
 "fy" (uint); applies an fx by fy boxcar averaging filter to the GMT .grd
 file specified by infile and writes the output to a GMT .grd file given by
-outfile.
+outfile. fx and fy are specified as an integer number of grid points.
 
 insert_grd -- parameters: "grid1", "grid2", "gmask", "gout" (all strings, 
-all GMT .grd files, grid1, grid2, and gmask must have the same resolution
-and their grid points must be co-registered, grid2 and gmask must have 
-identical sizes); inserts grid2 into grid1 using the weighted clipping
+all GMT .grd files; grid1, grid2, and gmask must have the same resolution
+and their grid points must be co-registered; grid2 and gmask must have 
+identical sizes). Program embeds grid2 into grid1 using the weighted clipping
 mask gmask, and writes the output to gout. grid1 must fit entirely within 
 grid2. gmask should be 1 (one) where the value in grid2 is to replace the
 value in grid1, 0 (zero) where the value in grid1 should be left alone.
@@ -43,7 +43,7 @@ topographic slope to Vs30 using Wald & Allen (2007) and Allen & Wald (2009).
 The input files gradient_file, landmask_file, and craton_file must be the
 same dimensions, same resolution, and with grid points co-registered.
 gradient_file contains the (unitless, i.e., units-per-unit) topographic 
-slope (usually created using GMT's grdgradient program on a digital 
+slope (usually created by using GMT's grdgradient program on a digital 
 elevation model). landmask_file should be 1 (one) on land and 0 (zero)
 over water (oceans, lakes, rivers, etc.); it is usually created with 
 GMT's grdlandmask program. craton_file should be 1 (one) on stable

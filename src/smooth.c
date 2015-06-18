@@ -70,8 +70,8 @@ int main(int ac, char **av) {
   setpar(ac, av);
   mstpar("infile", "s", in_path);
   mstpar("outfile", "s", out_path);
-  mstpar("fx", "d", &fx);
-  mstpar("fy", "d", &fy);
+  mstpar("fx", "z", &fx);
+  mstpar("fy", "z", &fy);
   endpar();
 
   if (fx % 2 == 0) {

@@ -1,5 +1,5 @@
 #
-# Makefile for PNW Vs30 grid into the global+CA grid
+# Makefile for Utah Vs30 grid into the global+regional grid
 #
 include ../Constants.mk
 
@@ -48,8 +48,8 @@ veryclean : clean
 
 #################################
 #
-# Run the insert program; this will insert the PNW map into the global grid that
-# already has the CA map inserted:
+# Run the insert program; this will insert the Utah map into the global grid 
+# that may already have other regional maps inserted:
 #
 $(OUTGRD) : $(INGRD) ut_ext.grd weights.grd ../src/insert_grd 
 	../src/insert_grd grid1=$(INGRD) grid2=ut_ext.grd gmask=weights.grd gout=$(OUTGRD)

@@ -1,5 +1,5 @@
 #
-# Makefile for PNW Vs30 grid into the global+CA grid
+# Makefile for Taiwan Vs30 grid into the global+regional grid
 #
 include ../Constants.mk
 

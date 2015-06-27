@@ -1,0 +1,12 @@
+*.[oa]
+*.png
+*.ps
+*.grd
+*.bil
+*.hdr
+Japan/shape
+Slope/cratons
+Slope/elev
+src/grad2vs30
+src/insert_grd
+src/smooth

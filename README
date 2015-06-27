@@ -7,10 +7,10 @@ map where they are available.
 It starts running in the Slope directory, where it makes a file
 called "global_vs30.grd" and copies it to the top-level directory.
 It then runs in each of the regional sub-directories (currently,
-California, PNW, and Utah) each of which inserts its regional map
-into the global map, tagging it with an "_<region>" extension 
-(e.g., California uses the "ca" extension, so if it were to 
-operate on the "global_vs30.grd" file, it would create a file
+California, PNW, Utah, Japan, and Taiwan) each of which inserts its 
+regional map into the global map, tagging it with an "_<region>" 
+extension (e.g., California uses the "ca" extension, so if it were 
+to operate on the "global_vs30.grd" file, it would create a file
 called "global_vs30_ca.grd". The top-level file is then removed,
 and the region's custom file is copied into its place. The 
 next region then operates on that file (e.g., PNW, whose extension
@@ -27,7 +27,13 @@ PREREQUISITES AND CONFIGURATION
 -------------------------------
 Before starting, you should review the constants in Constants.mk. In
 particular, make sure CDFLIB, CDFINC, GMTLIB, and GMTINC are set 
-correctly for your system.
+correctly for your system. You'll also want to set the resolution 
+of the maps to one of the supported values; 30 arc-seconds is the
+default. Note that the 7.5 second resolution makes very large files
+and the GMT commands require system memory in excess of what most 
+machines can currently support. See Slope/commands_75.txt for a list 
+of commands that will make the 7.5 second map in two pieces, and 
+then join them at the end. 
 
 You will need to have certain software installed and within your
 current search path. The required software is:
@@ -61,7 +67,7 @@ Constants.mk are set, you should just be able to do:
 	% make
 
 And the process should proceed to make a global grid file with insert
-maps for California, PNW, and Utah. To remove one or more regions, see 
+maps for California, PNW, Utah, etc. To remove one or more regions, see 
 the top level Makefile and look at the instructions near the top. 
 
 If you want to make plots, it's set up in the regional Makefiles. Doing:

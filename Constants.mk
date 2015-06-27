@@ -37,8 +37,38 @@ GDAL_PATH=/opt/local/bin
 STATIC =
 
 #
+# The output map resolution in arc-seconds (RES) and decimal degrees (RES_DD);
+# both of these must represent the same resolution; the GMTED2010 is available 
+# in 30, 15, and 7.5 arc second resolutions (0.008333333333, 0.004166666667, 
+# 0.002083333333 degrees), so those are good choices; other resolutions will
+# require makefile modifications.
+# 30c makes a global file that is approximately 3GB
+# 15c makes a global file that is approximately 12GB
+# 7.5c makes a global file that is approximately 46GB 
+# In all cases the disk space required to construct the map is at 
+# least ten times the final file size (unless you go step by step and
+# clean up as you go).
+#
+# NOTE: If you try to make the 7.5c map and run into memory problems
+# (and you very likely will), see the file "commands_75.txt" in the 
+# Slope directory for a way to make the map in two pieces and then
+# stitch it together. If that's still too big for your machine, you
+# can follow the pattern there and split the map into four or more
+# pieces. I didn't build any of this into the Makefile because it's
+# just too complicated and a couple of years from now everyone is 
+# going to have a machine that can handle the full grid.
+#
+RES = 30
+RES_DD = 0.00833333333333
+#RES = 15
+#RES_DD = 0.004166666667
+#RES = 7.5
+#RES_DD = 0.002083333333
+
+#
 # The region for which we have a DEM (GMTED2010); this defines
-# the extent of the global map.
+# the extent of the global map. You probably don't want to change
+# this.
 #
 GXMIN = -180
 GXMAX = 180
@@ -67,23 +97,6 @@ WEIGHTS_CPT = ../Misc/weights.cpt
 # The velocity assigned to water-covered areas
 #
 WATER = 600
-
-#
-# The gridfile resolution in arc-seconds (RES) and decimal degrees (RES_DD);
-# both of these must represent the same resolution; the GMTED2010 is available 
-# in 30, 15, and 7.5 arc second resolutions (0.008333333333, 0.004166666667, 
-# 0.002083333333 degrees), so those are good choices; other resolutions will
-# require makefile modifications.
-# 30c makes a global file that is approximately 3GB
-# 15c makes a global file that is approximately 12GB
-# 7.5c makes a global file that is approximately 48GB (I haven't tested this)
-#
-RES = 30
-RES_DD = 0.00833333333333
-#RES = 15
-#RES_DD = 0.004166666667
-#RES = 7.5
-#RES_DD = 0.002083333333
 
 #
 # Taiwan map: Pick one or the other map to insert.

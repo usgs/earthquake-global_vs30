@@ -12,8 +12,9 @@ INSERT_MAPS = Slope \
               California \
               PNW \
               Utah \
-			  Japan \
-			  Taiwan
+        	  Japan \
+        	  Taiwan \
+			  NZ
 
 #
 # This should be a complete list of subdirectories so that
@@ -25,8 +26,9 @@ MKDIRS = src \
          California \
          PNW \
          Utah \
-		 Japan \
-		 Taiwan
+         Japan \
+         Taiwan \
+		 NZ
 
 MKDIRS_CLEAN = $(patsubst %,%.clean,$(MKDIRS))
 MKDIRS_VCLEAN = $(patsubst %,%.vclean,$(MKDIRS))

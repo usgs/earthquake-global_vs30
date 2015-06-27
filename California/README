@@ -7,7 +7,9 @@ make in the Slope directory first, then here you can simply issue the command:
 
         % make
 
-Following this run, proceed to the PNW directory and follow the directions there.
+Following this run, proceed to the other regional directories listed in 
+../Makefile and follow the directions there.
+
 Note that it is easier to achieve these results from the Makefile in this directory's 
-parent directory.
+parent directory by simply running 'make' there.
 

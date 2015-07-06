@@ -66,11 +66,11 @@ weights.grd : newzealand.grd
 	grdmath $< 0 MUL 1 ADD = $@
 
 #
-# Make the insert map, Set values < 50 to 0, between 50 and 90 to 90,
-# and then set zeros to the water velocity
+# Make the insert map, Set zeros to the water velocity, and values < 150 to 150
+# (per Nick Horspool)
 #
 newzealand.grd : nz_$(RES)c.grd
-	grdmath $< DUP 50 GT MUL DUP DUP 0 GT EXCH 90 LE MUL 90 MUL EXCH DUP 90 GT MUL ADD DUP 0 EQ $(WATER) MUL ADD = $@
+	grdmath $< DUP 0 EQ $(WATER) MUL ADD 150 MAX = $@
 
 ifeq ($(IS_FINER),true)
 nz_$(RES)c.grd : vs30_nz_gmt4.grd

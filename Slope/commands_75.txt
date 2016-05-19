@@ -4,7 +4,7 @@
 #
 # First step: download the GMTED data:
 mkdir -p elev
-curl http://topotools.cr.usgs.gov/gmted_viewer/data/Grid_ZipFiles/md75_grd.zip > elev/md75_grd.zip 
+curl http://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo//downloads/GMTED/Grid_ZipFiles/md75_grd.zip > elev/md75_grd.zip 
 cd elev 
 unzip md75_grd.zip 
 touch -c md75_grd

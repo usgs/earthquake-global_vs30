@@ -72,7 +72,7 @@ elev/md$(GRES)_grd : elev/md$(GRES)_grd.zip
 #
 elev/md$(GRES)_grd.zip :
 	mkdir -p elev;
-	$(CURL) http://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Grid_ZipFiles/md$(GRES)_grd.zip > elev/md$(GRES)_grd.zip 
+	$(CURL) https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Grid_ZipFiles/md$(GRES)_grd.zip > elev/md$(GRES)_grd.zip 
 
 #
 # Create the landmask:

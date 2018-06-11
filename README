@@ -7,11 +7,11 @@ map where they are available.
 It starts running in the Slope directory, where it makes a file
 called "global_vs30.grd" and copies it to the top-level directory.
 It then runs in each of the regional sub-directories (currently,
-California, PNW, Utah, Japan, and Taiwan) each of which inserts its 
-regional map into the global map, tagging it with an "_<region>" 
-extension (e.g., California uses the "ca" extension, so if it were 
-to operate on the "global_vs30.grd" file, it would create a file
-called "global_vs30_ca.grd". The top-level file is then removed,
+California, PNW, Utah, Japan, Taiwan, and New Zealand) each of which
+ inserts its regional map into the global map, tagging it with an
+ "_<region>" extension (e.g., California uses the "ca" extension, so
+ if it were to operate on the "global_vs30.grd" file, it would create
+ a file called "global_vs30_ca.grd". The top-level file is then removed,
 and the region's custom file is copied into its place. The 
 next region then operates on that file (e.g., PNW, whose extension
 is "waor" would act on "global_vs30_ca.grd" and create

@@ -8,10 +8,10 @@
 # Set these to the directories where libnetcdf, the CDF include file,
 # libgmt, and the GMT include files reside, respectively.
 #
-CDFLIB  = /usr/local/Cellar/netcdf/4.6.1_2/lib
-CDFINC  = /usr/local/Cellar/netcdf/4.6.1_2/include
-GMTLIB  = /usr/local/Cellar/gmt@4/4.5.17_2/lib
-GMTINC  = /usr/local/Cellar/gmt@4/4.5.17_2/include
+CDFLIB  = /usr/local/lib
+CDFINC  = /usr/local/include
+GMTLIB  = /usr/local/lib
+GMTINC  = /usr/local/include
 
 #
 # CURL (or curl) utility. Many systems have this by default, others
@@ -24,7 +24,7 @@ CURL=curl
 # The path leading to the gdal binaries -- in particular,
 # gdal_rasterize and gdal_translate
 #
-GDAL_PATH=/anaconda3/bin
+GDAL_PATH=/opt/local/bin
 
 #
 # Sometimes the C programs in src will compile but die at runtime

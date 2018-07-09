@@ -15,7 +15,7 @@ GLOBAL VS30 MAP
 ================
 
 The software in this repository creates a global topographic-slope
-based Vs30 model, and then iserts regional maps into the global
+based Vs30 model, and then inserts regional maps into the global
 map where they are available.
 
 It starts running in the Slope directory, where it makes a file
@@ -29,7 +29,7 @@ California, PNW, Utah, Japan, Taiwan, and New Zealand) each of which
 and the region's custom file is copied into its place. The
 next region then operates on that file (e.g., PNW, whose extension
 is "waor" would act on "global_vs30_ca.grd" and create
-"global_vs30_ca_waor.grd.
+"global_vs30_ca_waor.grd".)
 
 In this way, each stage of the process is captured in "Slope"
 and the regional subdirectories, while the final product lives
@@ -68,7 +68,7 @@ sure to install the full-resolution shoreline database.
 
 + The **GDAL (Geospatial Data Abstraction Library)** package must be available.
 You will need at least version 1.9 -- earlier versions, like 1.4, will not
-work. Additionally, the most recent version -- 2.3.0 is also incompatible.
+work. Additionally, the most recent version -- 2.3.0, is incompatible.
 You will need to set a path to the gdal binaries in Constants.mk.
 In particular, the programs gdal_rasterize and gdal_translate are used
 herein. GDAL can be installed by most package managers, but they often
@@ -76,20 +76,20 @@ have very old versions. The software can also be found at www.gdal.org.
 
 
 + If you have runtime problems with the C programs ("smooth", "insert_grd",
-"grad2vs30"), have a look at the STATIC variable in Constants.mk
+"grad2vs30"), have a look at the **STATIC** variable in Constants.mk
 
 
 MAKING THE MAPS
 ------------------------
 
 Once all of the proper software is installed, and the variables in
-Constants.mk are set, you should just be able to do:
+Constants.mk are set, in the top-level directory you should just be able to do:
 
         % make
 
 And the process should proceed to make a global grid file with insert
 maps for California, PNW, Utah, etc. To remove one or more regions, see
-the top level Makefile and look at the instructions near the top.
+the top-level Makefile and look at the instructions near the top.
 
 If you want to make plots, it's set up in the regional Makefiles. Doing:
 

@@ -1,0 +1,127 @@
+#
+# Makefile for Australia Vs30 grid into the global+regional grid
+#
+include ../Constants.mk
+
+#
+# MYEXT is this region's insert map extension. MYNAME is just for
+# informational messages. MYEXT must be defined before the Regional.mk
+# include file.
+#
+MYEXT = aus
+MYNAME = Australia
+AUS_GRD_FILE = asscm_wii_vs30.900.grd
+#
+# Regional include; sets INGRD and OUTGRD.
+#
+include ../Regional.mk
+
+AUS_XMIN = 112.921404378
+AUS_XMAX = 153.638071043
+AUS_YMIN = -43.6586201656
+AUS_YMAX = -9.14195350033
+AUS_REGION = $(AUS_XMIN)/$(AUS_XMAX)/$(AUS_YMIN)/$(AUS_YMAX)
+
+IS_FINER := $(shell [ $(IRES) -lt 30 ] && echo true)
+
+.PHONY: all plots clean clean_plots veryclean
+
+#
+# Regional.mk has the targets "all" and ../$(OUTGRD) in it:
+#
+# all : ../$(OUTGRD)
+#
+#
+#../$(OUTGRD) : $(OUTGRD)
+#	$(RM) $(INGRD)
+#	cp $< ..
+#
+
+plots :  plot_raw_map plot_weights plot_final_map
+
+clean : clean_plots
+	$(RM) aus.grd weights.grd aus_*c.grd
+
+clean_plots :
+	$(RM) *.ps *.png
+	$(RM) aus_region.grd
+
+veryclean : clean
+	$(RM) global_vs30*_$(MYEXT).grd
+
+#################################
+#
+# Run the insert program; this will insert the Australia map into the 
+# global grid that may already have other maps inserted:
+#
+$(OUTGRD) : $(INGRD) aus.grd weights.grd ../src/insert_grd 
+	../src/insert_grd grid1=$(INGRD) grid2=aus.grd gmask=weights.grd gout=$@
+
+#
+# Make a weighted clipping mask; this is trivial in this case
+# because our region is entirely surrounded by water; the 
+# weights = 1 where we have Vs30, = 0 where we don't 
+#
+weights.grd : aus_$(RES)c.grd
+	grdmath $< 0 AND 0 GT = $@
+
+#
+# Make the insert map, set NaNs to the water velocity
+#
+aus.grd : aus_$(RES)c.grd
+	grdmath $< $(WATER) AND = $@
+
+ifeq ($(IS_FINER),true)
+aus_$(RES)c.grd : $(AUS_GRD_FILE)
+	grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
+else
+aus_$(RES)c.grd : $(AUS_GRD_FILE)
+	cp $< $@
+endif
+
+$(AUS_GRD_FILE) : 
+	( echo "File $(AUS_GRD_FILE) must be supplied." && false )
+
+####################################
+#
+# Plots
+#
+plot_weights : weights.png
+
+plot_final_map : aus.png
+
+plot_raw_map : aus_raw.png
+
+# Plot the weights:
+ 
+weights.png : weights.grd
+	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4dg2d/a2eg2dWSen -K > weights.ps
+	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
+	pscoast -JM12 -R$(AUS_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
+ 
+# Plot the new Vs30 map:
+ONE = 1.0
+AUS_REG_XMIN = $(shell echo $(AUS_XMIN) - $(ONE) | bc)
+AUS_REG_XMAX = $(shell echo $(AUS_XMAX) + $(ONE) | bc)
+AUS_REG_YMIN = $(shell echo $(AUS_YMIN) - $(ONE) | bc)
+AUS_REG_YMAX = $(shell echo $(AUS_YMAX) + $(ONE) | bc)
+AUS_REG = $(AUS_REG_XMIN)/$(AUS_REG_XMAX)/$(AUS_REG_YMIN)/$(AUS_REG_YMAX)
+ 
+aus.png : aus_region.grd
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba6d/a4eWSen -K > aus_region.ps
+	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_region.ps
+	pscoast -JM12 -R$(AUS_REG) -O -Df -N1 -N2 -W >> aus_region.ps
+	convert -trim -density 300x300 -rotate 90 aus_region.ps aus_region.png
+
+aus_region.grd : ../$(OUTGRD)
+	grdcut -R$(AUS_REG) $< -G$@
+
+# Plot the raw geology map
+
+aus_raw.png : $(AUS_GRD_FILE)
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > aus_raw.ps
+	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_raw.ps
+	pscoast -JM12 -R$(AUS_REGION) -O -Df -N1 -N2 -W >> aus_raw.ps
+	convert -trim -rotate 90 -density 300x300 aus_raw.ps aus_raw.png
+

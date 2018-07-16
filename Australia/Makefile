@@ -10,7 +10,7 @@ include ../Constants.mk
 #
 MYEXT = aus
 MYNAME = Australia
-AUS_GRD_FILE = asscm_wii_vs30.900.grd
+AUS_GRD_FILE = asscm_wii_vs30.grd
 #
 # Regional include; sets INGRD and OUTGRD.
 #

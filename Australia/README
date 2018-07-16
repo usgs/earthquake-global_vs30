@@ -1,7 +1,5 @@
-The user should select one of the hybrid Taiwan maps by making the 
-appropriate edits in ../Constants.mk. The Makfile will then create 
-a grid file and a weighted clipping mask suitable for inserting the 
-Taiwan Vs30 map into the global Vs30 map.  See the Makefile for 
+The Makfile will create a grid file and a weighted clipping mask suitable for inserting the 
+Australia Vs30 map into the global Vs30 map.  See the Makefile for 
 specifics of the processing.
 
 To create the necessary files and insert them into the global map, run

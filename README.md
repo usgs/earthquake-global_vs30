@@ -21,7 +21,7 @@ map where they are available.
 It starts running in the Slope directory, where it makes a file
 called "global_vs30.grd" and copies it to the top-level directory.
 It then runs in each of the regional sub-directories (currently,
-California, PNW, Utah, Japan, Taiwan, and New Zealand) each of which
+California, PNW, Utah, Japan, Taiwan, New Zealand, and Australia) each of which
  inserts its regional map into the global map, tagging it with a
  "_<region>" extension (e.g., California uses the "ca" extension, so
  if it were to operate on the "global_vs30.grd" file, it would create
@@ -163,6 +163,9 @@ The Taiwan maps were provided by Eric Thompson based upon maps developed
 in Thompson & Wald (2012) "Developing Vs30 Site-Condition Maps by Combining
 Observations with Geologic and Topographic Constraints." Presented at
 15WCEE, Lisbon, Portugal.
+
+The Australia map is provided by A. A. McPherson and Trevor Allen of Geoscience 
+Australia under the Creative Commons Attribution 4.0 International Licence.
 
 The getpar library was created by Robert W. Clayton of the California
 Institute of Technology, and later amended by several others (see

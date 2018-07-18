@@ -1,7 +1,7 @@
 #
 # Makefile for Taiwan Vs30 grid into the global+regional grid
 #
-include ../Constants.mk
+include ~/.vs30/Constants.mk
 
 #
 # MYEXT is this region's insert map extension. MYNAME is just for

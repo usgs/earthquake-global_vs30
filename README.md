@@ -41,16 +41,6 @@ custom programming.
 PREREQUISITES AND CONFIGURATION
 ------------------------------------------------
 
-Before starting, you should review the constants in Constants.mk. In
-particular, make sure CDFLIB, CDFINC, GMTLIB, and GMTINC are set
-correctly for your system. You'll also want to set the resolution
-of the maps to one of the supported values; 30 arc-seconds is the
-default. Note that the 7.5 second resolution makes very large files
-and the GMT commands require system memory in excess of what most
-machines can currently support. See Slope/commands_75.txt for a list
-of commands that will make the 7.5 second map in two pieces, and
-then join them at the end.
-
 You will need to have certain software installed and within your
 current search path. The required software is:
 
@@ -77,6 +67,22 @@ have very old versions. The software can also be found at www.gdal.org.
 
 + If you have runtime problems with the C programs ("smooth", "insert_grd",
 "grad2vs30"), have a look at the **STATIC** variable in Constants.mk
+
+
+USER-DEFINED CONSTANTS.MK
+_________________________
+
+Before starting, you should notice the hidden directory ".vs30" included in the 
+repository. Please move this directory and its contents to your home directory (~). 
+Review the user-specific constants in ~/.vs30/Constants.mk. In
+particular, make sure CDFLIB, CDFINC, GMTLIB, and GMTINC are set
+correctly for your system. You'll also want to set the resolution
+of the maps to one of the supported values; 30 arc-seconds is the
+default. Note that the 7.5 second resolution makes very large files
+and the GMT commands require system memory in excess of what most
+machines can currently support. See Slope/commands_75.txt for a list
+of commands that will make the 7.5 second map in two pieces, and
+then join them at the end.
 
 
 MAKING THE MAPS

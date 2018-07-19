@@ -70,7 +70,7 @@ have very old versions. The software can also be found at www.gdal.org.
 
 
 USER-DEFINED CONSTANTS.MK
-_________________________
+----------------------------
 
 Before starting, you should notice the hidden directory ".vs30" included in the 
 repository. Please move this directory and its contents to your home directory (~). 

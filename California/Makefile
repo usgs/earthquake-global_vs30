@@ -5,7 +5,7 @@
 #
 # Include the boilerplate
 #
-include ../Constants.mk
+include ~/.vs30/Constants.mk
 
 #
 # MYEXT is this region's insert map extension. MYNAME is just for

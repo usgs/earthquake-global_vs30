@@ -1,7 +1,7 @@
 #
 # Makefile to generate a global slope-based Vs30 file
 #
-include ../Constants.mk
+include ~/.vs30/Constants.mk
 
 .PHONY: all clean veryclean
 

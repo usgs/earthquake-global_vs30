@@ -74,7 +74,7 @@ newzealand.grd : nz_$(RES)c.grd
 
 ifeq ($(IS_FINER),true)
 nz_$(RES)c.grd : vs30_nz_gmt4.grd
-	grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
+	grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
 else
 nz_$(RES)c.grd : vs30_nz_gmt4.grd
 	cp $< $@

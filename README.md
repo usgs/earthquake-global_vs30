@@ -52,8 +52,8 @@ one is http://curl.haxx.se.
 
 + **GMT/NetCDF** -- The Generic Mapping Tools package must be installed, and
 NetCDF with it. GMT can be downloaded from: http://gmt.soest.hawaii.edu/.
-Get version 4 -- this software hasn't been tested with version 5. Make
-sure to install the full-resolution shoreline database.
+The latest stable version -- 5.4.4 -- has been tested. Note that GMT version 
+4 will no longer work. Make sure to install the full-resolution shoreline database.
 
 
 + The **GDAL (Geospatial Data Abstraction Library)** package must be available.
@@ -63,6 +63,12 @@ You will need to set a path to the gdal binaries in Constants.mk.
 In particular, the programs gdal_rasterize and gdal_translate are used
 herein. GDAL can be installed by most package managers, but they often
 have very old versions. The software can also be found at www.gdal.org.
+
+
++ **ImageMagick** must be installed in order to view the plots created to spot-check
+the grid creation (using the command "convert"). This code is tested with version 7.0.8-7. 
+Please make sure to follow the installation instructions to ensure your path points 
+to the correct location. 
 
 
 + If you have runtime problems with the C programs ("smooth", "insert_grd",

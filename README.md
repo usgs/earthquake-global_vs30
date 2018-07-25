@@ -52,7 +52,7 @@ one is http://curl.haxx.se.
 
 + **GMT/NetCDF** -- The Generic Mapping Tools package must be installed, and
 NetCDF with it. GMT can be downloaded from: http://gmt.soest.hawaii.edu/.
-The latest stable version -- 5.4.4 -- has been tested. Note that GMT version 
+The latest stable version -- 5.4.4 -- should be downloaded. **Note** that GMT version 
 4 will no longer work. Make sure to install the full-resolution shoreline database.
 
 

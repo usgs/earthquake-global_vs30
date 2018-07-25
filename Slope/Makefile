@@ -39,7 +39,7 @@ veryclean : clean
 # newer versions of GMT):
 #
 global_grad.grd : gmted_global.grd
-	grdgradient gmted_global.grd -Lg -M -D -Sglobal_grad.grd -Gjunk.grd -V
+	grdgradient gmted_global.grd -n+bg -fg -D -Sglobal_grad.grd -Gjunk.grd -V
 	$(RM) junk.grd
 
 #
@@ -47,7 +47,7 @@ global_grad.grd : gmted_global.grd
 # node registration:
 #
 gmted_global.grd : elev/gmted_global.bil
-	xyz2grd -Zh -F -R$(GLOBAL_REGION) -I$(RES)c elev/gmted_global.bil \
+	xyz2grd -ZTLh -r -R$(GLOBAL_REGION) -I$(RES)s elev/gmted_global.bil \
                 -Ggmted_global_pixel.grd
 	grdsample gmted_global_pixel.grd -Ggmted_global.grd -T -fg
 	$(RM) gmted_global_pixel.grd
@@ -78,7 +78,7 @@ elev/md$(GRES)_grd.zip :
 # Create the landmask:
 #
 global_landmask.grd : 
-	grdlandmask -V -R$(GLOBAL_REGION) -I$(RES)c -Gglobal_landmask.grd -Df
+	grdlandmask -V -R$(GLOBAL_REGION) -I$(RES)s -Gglobal_landmask.grd -Df
 
 #
 # Smooth the craton file
@@ -92,8 +92,8 @@ cratons_smooth.grd : cratons.grd ../src/smooth
 # node registration; use -Qn to keep everything at 0 and 1:
 #
 cratons.grd : cratons.bil
-	xyz2grd -R$(GLOBAL_REGION) -I$(RES)c -Zc -F cratons.bil -Gcratons_pixel.grd
-	grdsample cratons_pixel.grd -Gcratons.grd -T -fg -Qn
+	xyz2grd -R$(GLOBAL_REGION) -I$(RES)s -ZTLc -r cratons.bil -Gcratons_pixel.grd
+	grdsample cratons_pixel.grd -Gcratons.grd -T -fg -nn
 	$(RM) cratons_pixel.grd
 
 #

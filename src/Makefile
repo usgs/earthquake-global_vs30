@@ -1,4 +1,4 @@
-include ../Constants.mk
+include ~/.vs30/Constants.mk
 
 LIBPATH = -L$(GMTLIB) -L$(CDFLIB)
 INCPATH = -I$(GMTINC) -I$(CDFINC)

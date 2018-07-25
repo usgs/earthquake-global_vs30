@@ -74,7 +74,7 @@ newzealand.grd : nz_$(RES)c.grd
 
 ifeq ($(IS_FINER),true)
 nz_$(RES)c.grd : vs30_nz_gmt4.grd
-	grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
+	grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
 else
 nz_$(RES)c.grd : vs30_nz_gmt4.grd
 	cp $< $@
@@ -99,7 +99,7 @@ plot_raw_map : newzealand_raw.png
 # Plot the weights:
  
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4dg2d/a2eg2dWSen -K > weights.ps
+	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4f2eWSn -K > weights.ps
 	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
 	pscoast -JM12 -R$(NZ_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
@@ -113,7 +113,7 @@ NZ_REG_YMAX = $(shell echo $(NZ_YMAX) + $(ONE) | bc)
 NZ_REG = $(NZ_REG_XMIN)/$(NZ_REG_XMAX)/$(NZ_REG_YMIN)/$(NZ_REG_YMAX)
  
 newzealand.png : newzealand_region.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba6d/a4eWSen -K > newzealand_region.ps
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eWSn -K > newzealand_region.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> newzealand_region.ps
 	pscoast -JM12 -R$(NZ_REG) -O -Df -N1 -N2 -W >> newzealand_region.ps
 	convert -trim -density 300x300 -rotate 90 newzealand_region.ps newzealand_region.png
@@ -124,7 +124,7 @@ newzealand_region.grd : ../$(OUTGRD)
 # Plot the raw geology map
 
 newzealand_raw.png : vs30_nz_gmt4.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > newzealand_raw.ps
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eWSn -K > newzealand_raw.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> newzealand_raw.ps
 	pscoast -JM12 -R$(NZ_REGION) -O -Df -N1 -N2 -W >> newzealand_raw.ps
 	convert -trim -rotate 90 -density 300x300 newzealand_raw.ps newzealand_raw.png

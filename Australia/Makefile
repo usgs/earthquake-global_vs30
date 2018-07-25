@@ -73,7 +73,7 @@ aus.grd : aus_$(RES)c.grd
 
 ifeq ($(IS_FINER),true)
 aus_$(RES)c.grd : $(AUS_GRD_FILE)
-	grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
+	grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
 else
 aus_$(RES)c.grd : $(AUS_GRD_FILE)
 	cp $< $@
@@ -95,7 +95,7 @@ plot_raw_map : aus_raw.png
 # Plot the weights:
  
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4dg2d/a2eg2dWSen -K > weights.ps
+	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba10f5eWSn -K > weights.ps
 	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
 	pscoast -JM12 -R$(AUS_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
@@ -109,7 +109,7 @@ AUS_REG_YMAX = $(shell echo $(AUS_YMAX) + $(ONE) | bc)
 AUS_REG = $(AUS_REG_XMIN)/$(AUS_REG_XMAX)/$(AUS_REG_YMIN)/$(AUS_REG_YMAX)
  
 aus.png : aus_region.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba6d/a4eWSen -K > aus_region.ps
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba10f5eWSn -K > aus_region.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_region.ps
 	pscoast -JM12 -R$(AUS_REG) -O -Df -N1 -N2 -W >> aus_region.ps
 	convert -trim -density 300x300 -rotate 90 aus_region.ps aus_region.png
@@ -120,7 +120,7 @@ aus_region.grd : ../$(OUTGRD)
 # Plot the raw geology map
 
 aus_raw.png : $(AUS_GRD_FILE)
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > aus_raw.ps
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba10f5eWSn -K > aus_raw.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_raw.ps
 	pscoast -JM12 -R$(AUS_REGION) -O -Df -N1 -N2 -W >> aus_raw.ps
 	convert -trim -rotate 90 -density 300x300 aus_raw.ps aus_raw.png

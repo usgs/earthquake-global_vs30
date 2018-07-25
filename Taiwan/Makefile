@@ -95,7 +95,7 @@ plot_raw_map : taiwan_raw.png
 # Plot the weights:
  
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4dg2d/a2eg2dWSen -K > weights.ps
+	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba1WSen -K > weights.ps
 	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
 	pscoast -JM12 -R$(TW_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
@@ -109,7 +109,7 @@ TW_REG_YMAX = $(shell echo $(TW_YMAX) + $(ONE) | bc)
 TW_REG = $(TW_REG_XMIN)/$(TW_REG_XMAX)/$(TW_REG_YMIN)/$(TW_REG_YMAX)
  
 taiwan.png : taiwan_region.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba6d/a4eWSen -K > taiwan_region.ps
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba1WSen -K > taiwan_region.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> taiwan_region.ps
 	pscoast -JM12 -R$(TW_REG) -O -Df -N1 -N2 -W >> taiwan_region.ps
 	convert -trim -density 300x300 -rotate 90 taiwan_region.ps taiwan_region.png
@@ -120,7 +120,7 @@ taiwan_region.grd : ../$(OUTGRD)
 # Plot the raw geology map
 
 taiwan_raw.png : $(TW_GRD_FILE)
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > taiwan_raw.ps
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba1WSen -K > taiwan_raw.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> taiwan_raw.ps
 	pscoast -JM12 -R$(TW_REGION) -O -Df -N1 -N2 -W >> taiwan_raw.ps
 	convert -trim -rotate 90 -density 300x300 taiwan_raw.ps taiwan_raw.png

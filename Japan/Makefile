@@ -72,7 +72,7 @@ weights.grd : japan.grd
 # Make the raster file into a GMT grd
 #
 japan.grd : shape/japan_$(RES)c.bil
-	xyz2grd -R$(JP_REGION) -I$(RES)c -Zf $< -G$@
+	xyz2grd -R$(JP_REGION) -I$(RES)s -ZTLf $< -G$@
 #
 # Convert shape file into a raster file
 #
@@ -101,7 +101,7 @@ plot_raw_map : japan_raw.png
 # Plot the weights:
  
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4dg2d/a2eg2dWSen -K > weights.ps
+	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4f2eSWn -K > weights.ps
 	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
 	pscoast -JM12 -R$(JP_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
@@ -109,7 +109,7 @@ weights.png : weights.grd
 # Plot the new Vs30 map:
  
 japan_region.png : japan_region.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba6d/a4eWSen -K > japan_region.ps
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eSWn -K > japan_region.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> japan_region.ps
 	pscoast -JM12 -R$(JP_REGION) -O -Df -N1 -N2 -W >> japan_region.ps
 	convert -trim -density 300x300 -rotate 90 japan_region.ps japan_region.png
@@ -120,7 +120,7 @@ japan_region.grd : ../$(OUTGRD)
 # Plot the raw geology map using its own scale.
 
 japan_raw.png : japan.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > japan_raw.ps
+	grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eSWn -K > japan_raw.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O >> japan_raw.ps
 	convert -trim -rotate 90 -density 300x300 japan_raw.ps japan_raw.png
 

@@ -114,7 +114,7 @@ vs30_ext_h2o600.grd : vs30_$(RES)c_ext.grd landmask.grd
 	grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL AND = $@
 
 landmask.grd : 
-	grdlandmask -V -R$(CA_EXT_REGION) -I$(RES)c -G$@ -Df -N1/0/0/0/0
+	grdlandmask -V -R$(CA_EXT_REGION) -I$(RES)s -G$@ -Df -N1/0/0/0/0
 
 #
 # Paste a 1-degree chunk of NaNs to the top of the map:
@@ -123,7 +123,7 @@ vs30_$(RES)c_ext.grd : vs30_$(RES)c.grd top.grd
 	grdpaste vs30_$(RES)c.grd top.grd -G$@
 
 top.grd : 
-	grdmath -R-124.475/-114.025/41.9916666667/43.0 -I$(RES)c 0 0 NAN = top.grd
+	grdmath -R-124.475/-114.025/41.9916666667/43.0 -I$(RES)s 0 0 NAN = top.grd
 
 #
 # Rescale to proper resolution. If the output is coarser than the
@@ -133,10 +133,10 @@ top.grd :
 
 ifeq ($(IS_COARSER),true)
 vs30_$(RES)c.grd : Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd
-	grdfilter -I$(RES)c -D0 -Fg0.016 $< -G$@
+	grdfilter -I$(RES)s -D0 -Fg0.016 $< -G$@
 else
 vs30_$(RES)c.grd : Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd
-	grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
+	grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
 endif
 
 Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd :
@@ -163,7 +163,7 @@ plot_final_map_wus : wus.png
 # Plot the resampled base Vs30 map
 
 base.png : vs30_$(RES)c.grd
-	grdimage vs30_$(RES)c.grd -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > base.ps
+	grdimage vs30_$(RES)c.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > base.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> base.ps
 	pscoast -JM12 -R$(CA_BASE_REGION) -O -N1 -N2 -W >> base.ps
 	convert -rotate 90 base.ps base.png
@@ -171,7 +171,7 @@ base.png : vs30_$(RES)c.grd
 # Plot the landmask with CA Vs30s inserted:
  
 landmask.png : vs30_ext_h2o600.grd
-	grdimage vs30_ext_h2o600.grd -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > landmask.ps
+	grdimage vs30_ext_h2o600.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > landmask.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> landmask.ps
 	pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask.ps
 	convert -rotate 90 landmask.ps landmask.png
@@ -179,14 +179,14 @@ landmask.png : vs30_ext_h2o600.grd
 # Plot the clipping mask:
 
 clipmask.png : mask.grd
-	grdimage mask.grd -JM12 -C$(WEIGHTS_CPT) -Ba4d/a2eWSen -K > clipmask.ps
+	grdimage mask.grd -JM12 -C$(WEIGHTS_CPT) -Ba2f1WSen -K > clipmask.ps
 	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> clipmask.ps
 	convert -rotate 90 clipmask.ps clipmask.png
  
 # Plot the smoothed clipping mask:
 
 landmask_smooth.png : mask_smooth.grd
-	grdimage mask_smooth.grd -JM12 -C$(WEIGHTS_CPT) -Ba4d/a2eWSen -K > landmask_smooth.ps
+	grdimage mask_smooth.grd -JM12 -C$(WEIGHTS_CPT) -Ba2f1WSen -K > landmask_smooth.ps
 	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> landmask_smooth.ps
 	pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask_smooth.ps
 	convert -rotate 90 landmask_smooth.ps landmask_smooth.png
@@ -194,7 +194,7 @@ landmask_smooth.png : mask_smooth.grd
 # Plot the rescaled clipping mask.
 
 clipmask_2.png : mask_2.grd
-	grdimage mask_2.grd -JM12 -C$(WEIGHTS_CPT) -Ba4d/a2eWSen -K > clipmask_2.ps
+	grdimage mask_2.grd -JM12 -C$(WEIGHTS_CPT) -Ba2f1WSen -K > clipmask_2.ps
 	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> clipmask_2.ps
 	pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> clipmask_2.ps
 	convert -rotate 90 clipmask_2.ps clipmask_2.png
@@ -202,7 +202,7 @@ clipmask_2.png : mask_2.grd
 # Plot the weights:
 
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4dg2d/a2eg2dWSen -K > weights.ps
+	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba2f1WSen -K > weights.ps
 	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps     
 	pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> weights.ps
 	convert -rotate 90 weights.ps weights.png
@@ -210,7 +210,7 @@ weights.png : weights.grd
 # Plot the new Vs30 map in a cut out map of the western US
  
 wus.png : wus_vs30.grd
-	grdimage wus_vs30.grd -JM12 -C$(VS30_CPT) -Ba4d/a2eWSen -K > wus.ps
+	grdimage wus_vs30.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > wus.ps
 	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> wus.ps
 	pscoast -JM12 -R$(WUS_REGION) -O -N1 -N2 -W >> wus.ps
 	convert -rotate 90 wus.ps wus.png

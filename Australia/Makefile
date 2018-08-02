@@ -63,17 +63,17 @@ $(OUTGRD) : $(INGRD) aus.grd weights.grd ../src/insert_grd
 # weights = 1 where we have Vs30, = 0 where we don't 
 #
 weights.grd : aus_$(RES)c.grd
-	grdmath $< 0 AND 0 GT = $@
+	gmt grdmath $< 0 AND 0 GT = $@
 
 #
 # Make the insert map, set NaNs to the water velocity
 #
 aus.grd : aus_$(RES)c.grd
-	grdmath $< $(WATER) AND = $@
+	gmt grdmath $< $(WATER) AND = $@
 
 ifeq ($(IS_FINER),true)
 aus_$(RES)c.grd : $(AUS_GRD_FILE)
-	grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
+	gmt grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
 else
 aus_$(RES)c.grd : $(AUS_GRD_FILE)
 	cp $< $@
@@ -95,9 +95,9 @@ plot_raw_map : aus_raw.png
 # Plot the weights:
  
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba10f5eWSn -K > weights.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
-	pscoast -JM12 -R$(AUS_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba10f5eWSn -K > weights.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
+	gmt pscoast -JM12 -R$(AUS_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
  
 # Plot the new Vs30 map:
@@ -109,19 +109,19 @@ AUS_REG_YMAX = $(shell echo $(AUS_YMAX) + $(ONE) | bc)
 AUS_REG = $(AUS_REG_XMIN)/$(AUS_REG_XMAX)/$(AUS_REG_YMIN)/$(AUS_REG_YMAX)
  
 aus.png : aus_region.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba10f5eWSn -K > aus_region.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_region.ps
-	pscoast -JM12 -R$(AUS_REG) -O -Df -N1 -N2 -W >> aus_region.ps
+	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba10f5eWSn -K > aus_region.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_region.ps
+	gmt pscoast -JM12 -R$(AUS_REG) -O -Df -N1 -N2 -W >> aus_region.ps
 	convert -trim -density 300x300 -rotate 90 aus_region.ps aus_region.png
 
 aus_region.grd : ../$(OUTGRD)
-	grdcut -R$(AUS_REG) $< -G$@
+	gmt grdcut -R$(AUS_REG) $< -G$@
 
 # Plot the raw geology map
 
 aus_raw.png : $(AUS_GRD_FILE)
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba10f5eWSn -K > aus_raw.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_raw.ps
-	pscoast -JM12 -R$(AUS_REGION) -O -Df -N1 -N2 -W >> aus_raw.ps
+	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba10f5eWSn -K > aus_raw.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_raw.ps
+	gmt pscoast -JM12 -R$(AUS_REGION) -O -Df -N1 -N2 -W >> aus_raw.ps
 	convert -trim -rotate 90 -density 300x300 aus_raw.ps aus_raw.png
 

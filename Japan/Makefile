@@ -66,18 +66,18 @@ $(OUTGRD) : $(INGRD) japan.grd weights.grd ../src/insert_grd
 # weights = 1 where we have Vs30, = 0 where we don't 
 #
 weights.grd : japan.grd 
-	grdmath $< 0 GT = $@
+	gmt grdmath $< 0 GT = $@
 
 #
 # Make the raster file into a GMT grd
 #
 japan.grd : shape/japan_$(RES)c.bil
-	xyz2grd -R$(JP_REGION) -I$(RES)s -ZTLf $< -G$@
+	gmt xyz2grd -R$(JP_REGION) -I$(RES)s -ZTLf $< -G$@
 #
 # Convert shape file into a raster file
 #
 shape/japan_$(RES)c.bil : shape/$(SHAPE_BASE).shp
-	gdal_rasterize -of EHdr -a AVS -init 0 -te $(JP_XMIN) $(JP_YMIN) $(JP_XMAX) $(JP_YMAX) -tr $(RES_DD) $(RES_DD) -ot Float32 -tap $< $@
+	$(GDAL_PATH)/gdal_rasterize -of EHdr -a AVS -init 0 -te $(JP_XMIN) $(JP_YMIN) $(JP_XMAX) $(JP_YMAX) -tr $(RES_DD) $(RES_DD) -ot Float32 -tap $< $@
 #
 # Get the grid from the source and unpack it 
 #
@@ -101,26 +101,26 @@ plot_raw_map : japan_raw.png
 # Plot the weights:
  
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4f2eSWn -K > weights.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
-	pscoast -JM12 -R$(JP_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4f2eSWn -K > weights.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
+	gmt pscoast -JM12 -R$(JP_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
  
 # Plot the new Vs30 map:
  
 japan_region.png : japan_region.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eSWn -K > japan_region.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> japan_region.ps
-	pscoast -JM12 -R$(JP_REGION) -O -Df -N1 -N2 -W >> japan_region.ps
+	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eSWn -K > japan_region.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> japan_region.ps
+	gmt pscoast -JM12 -R$(JP_REGION) -O -Df -N1 -N2 -W >> japan_region.ps
 	convert -trim -density 300x300 -rotate 90 japan_region.ps japan_region.png
 
 japan_region.grd : ../$(OUTGRD)
-	grdcut -R$(JP_REGION) $< -G$@
+	gmt grdcut -R$(JP_REGION) $< -G$@
 
 # Plot the raw geology map using its own scale.
 
 japan_raw.png : japan.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eSWn -K > japan_raw.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O >> japan_raw.ps
+	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eSWn -K > japan_raw.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O >> japan_raw.ps
 	convert -trim -rotate 90 -density 300x300 japan_raw.ps japan_raw.png
 

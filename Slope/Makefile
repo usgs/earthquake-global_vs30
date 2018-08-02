@@ -39,7 +39,7 @@ veryclean : clean
 # newer versions of GMT):
 #
 global_grad.grd : gmted_global.grd
-	grdgradient gmted_global.grd -n+bg -fg -D -Sglobal_grad.grd -Gjunk.grd -V
+	gmt grdgradient gmted_global.grd -n+bg -fg -D -Sglobal_grad.grd -Gjunk.grd -V
 	$(RM) junk.grd
 
 #
@@ -47,9 +47,9 @@ global_grad.grd : gmted_global.grd
 # node registration:
 #
 gmted_global.grd : elev/gmted_global.bil
-	xyz2grd -ZTLh -r -R$(GLOBAL_REGION) -I$(RES)s elev/gmted_global.bil \
+	gmt xyz2grd -ZTLh -r -R$(GLOBAL_REGION) -I$(RES)s elev/gmted_global.bil \
                 -Ggmted_global_pixel.grd
-	grdsample gmted_global_pixel.grd -Ggmted_global.grd -T -fg
+	gmt grdsample gmted_global_pixel.grd -Ggmted_global.grd -T -fg
 	$(RM) gmted_global_pixel.grd
 
 #
@@ -78,7 +78,7 @@ elev/md$(GRES)_grd.zip :
 # Create the landmask:
 #
 global_landmask.grd : 
-	grdlandmask -V -R$(GLOBAL_REGION) -I$(RES)s -Gglobal_landmask.grd -Df
+	gmt grdlandmask -V -R$(GLOBAL_REGION) -I$(RES)s -Gglobal_landmask.grd -Df
 
 #
 # Smooth the craton file
@@ -92,8 +92,8 @@ cratons_smooth.grd : cratons.grd ../src/smooth
 # node registration; use -Qn to keep everything at 0 and 1:
 #
 cratons.grd : cratons.bil
-	xyz2grd -R$(GLOBAL_REGION) -I$(RES)s -ZTLc -r cratons.bil -Gcratons_pixel.grd
-	grdsample cratons_pixel.grd -Gcratons.grd -T -fg -nn
+	gmt xyz2grd -R$(GLOBAL_REGION) -I$(RES)s -ZTLc -r cratons.bil -Gcratons_pixel.grd
+	gmt grdsample cratons_pixel.grd -Gcratons.grd -T -fg -nn
 	$(RM) cratons_pixel.grd
 
 #
@@ -130,25 +130,25 @@ plot_global_topo : global_topo.png
 plot_global_vs30 : global_vs30.png
 	
 cratons.png : cratons.grd
-	grdimage cratons.grd -JM18 -R-180/180/-56/72 -C$(WEIGHTS_CPT) -Ba24d/a12eWSen -K > cratons.ps
-	pscoast -JM18 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> cratons.ps
-#	psscale -D20/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> cratons.ps
+	gmt grdimage cratons.grd -JM18 -R-180/180/-56/72 -C$(WEIGHTS_CPT) -Ba24d/a12eWSen -K > cratons.ps
+	gmt pscoast -JM18 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> cratons.ps
+#	gmt psscale -D20/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> cratons.ps
 	convert -rotate 90 -density 300x300 -crop 2400x1400+100+950 cratons.ps cratons.png
 
 cratons_smooth.png : cratons_smooth.grd
-	grdimage cratons_smooth.grd -JM18 -R-130/-48/12/50 -C$(WEIGHTS_CPT) -Ba8d/a4eWSen -K > cratons_smooth.ps
-	pscoast -JM18 -R-130/-48/12/50 -Di -N1 -N2 -W -S128/128/255 -A500/0/2 -O -K >> cratons_smooth.ps
-	psscale -D19/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> cratons_smooth.ps
+	gmt grdimage cratons_smooth.grd -JM18 -R-130/-48/12/50 -C$(WEIGHTS_CPT) -Ba8d/a4eWSen -K > cratons_smooth.ps
+	gmt pscoast -JM18 -R-130/-48/12/50 -Di -N1 -N2 -W -S128/128/255 -A500/0/2 -O -K >> cratons_smooth.ps
+	gmt psscale -D19/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> cratons_smooth.ps
 	convert -rotate 90 -density 300x300 -crop 2700x1400+100+950 cratons_smooth.ps cratons_smooth.png
 	
 global_topo.png : gmted_global.grd
-	grdimage gmted_global.grd -JM20 -R-180/180/-56/72 -C../Misc/tan.cpt -Ba24d/a12eWSen -K > global_topo.ps
-	pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_topo.ps
+	gmt grdimage gmted_global.grd -JM20 -R-180/180/-56/72 -C../Misc/tan.cpt -Ba24d/a12eWSen -K > global_topo.ps
+	gmt pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_topo.ps
 #	psscale -D21/4.3/9/0.5 -L -C../Misc/tan.cpt -O >> global_topo.ps
-	convert -rotate 90 -density 300x300 -crop 2700x1400+100+950 global_topo.ps global_topo.png
+	gmt convert -rotate 90 -density 300x300 -crop 2700x1400+100+950 global_topo.ps global_topo.png
 
 global_vs30.png : global_vs30.grd
-	grdimage global_vs30.grd -JM20 -R-180/180/-56/72 -C../Misc/global.cpt -Ba24d/a12eWSen -K > global_vs30.ps
-	pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_vs30.ps
-	psscale -D21/4.3/9/0.5 -L -C../Misc/global.cpt -O >> global_vs30.ps
+	gmt grdimage global_vs30.grd -JM20 -R-180/180/-56/72 -C../Misc/global.cpt -Ba24d/a12eWSen -K > global_vs30.ps
+	gmt pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_vs30.ps
+	gmt psscale -D21/4.3/9/0.5 -L -C../Misc/global.cpt -O >> global_vs30.ps
 	convert -rotate 90 -density 300x300 -crop 3000x1400+100+950 global_vs30.ps global_vs30.png

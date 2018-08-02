@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <locale.h>
 
-
 #include <gmt.h>
 
 #include "libget.h"
@@ -17,7 +16,7 @@
  * Takes three input files, each formatted GMT grd files
  * and point for point co-registered with each other; 
  * gradient_file contains the topographic slope expressed as
- * a unitless ration (e.g., meters per meter), landmask_file
+ * a unitless ratio (e.g., meters per meter), landmask_file
  * is 0 for water and 1 (one) for land; craton_file is a
  * weight ranging from 1 (one) on stable shields (craton) and
  * 0 in active tectonic regions -- values in between will
@@ -90,8 +89,10 @@ int main(int ac, char **av) {
   size_t nr;
   float *tt, (*table)[4];
   float lg, vv, tvs[2];
-  struct GMT_GRDFILE Ggrad, Gcrat, Gland, Gout;
-  GMT_LONG err;
+  void *API = NULL;
+  struct GMT_GRID *Ggrad, *Gcrat, *Gland, *Gout;
+  struct GMT_GRID_HEADER *G_hdr;
+  int err;
   struct stat sbuf;
 
   setlocale(LC_NUMERIC, "");
@@ -104,69 +105,51 @@ int main(int ac, char **av) {
   getpar("water", "f", &water);
   endpar();
 
-  if (stat(vs30_path, &sbuf) != ENOENT) {
+  if (stat(vs30_path, &sbuf) == 0) {
     unlink(vs30_path);
   }
 
-  GMT_begin(ac,av);
+  API = GMT_Create_Session("grad2vs30", 0, 0, NULL);
 
   /* Initialize the input objects and open the files */
-  GMT_grd_init(&Ggrad.header, ac, av, FALSE);
-  if (GMT_open_grd(grad_path, &Ggrad, 'r')) {
-    fprintf(stderr, "Couldn't open %s\n", grad_path);
+  fprintf(stderr, "Reading input files...");
+  if ((Ggrad = (struct GMT_GRID *)GMT_Read_Data(API, GMT_IS_GRID,
+				  GMT_IS_FILE, GMT_IS_SURFACE,
+				  GMT_CONTAINER_AND_DATA, NULL,
+				  grad_path, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't read %s\n", grad_path);
     exit(-1);
   }
+  if ((Gland = (struct GMT_GRID *)GMT_Read_Data(API, GMT_IS_GRID,
+				  GMT_IS_FILE, GMT_IS_SURFACE,
+				  GMT_CONTAINER_AND_DATA, NULL,
+				  land_path, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't read %s\n", land_path);
+    exit(-1);
+  }
+  if ((Gcrat = (struct GMT_GRID *)GMT_Read_Data(API, GMT_IS_GRID,
+				  GMT_IS_FILE, GMT_IS_SURFACE,
+				  GMT_CONTAINER_AND_DATA, NULL,
+				  craton_path, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't read %s\n", craton_path);
+    exit(-1);
+  }
+  fprintf(stderr, "Done.\n");
 
-  GMT_grd_init(&Gland.header, ac, av, FALSE);
-  if (GMT_open_grd(land_path, &Gland, 'r')) {
-    fprintf(stderr, "Couldn't open %s\n", land_path);
-    exit(-1);
-  }
-
-  GMT_grd_init(&Gcrat.header, ac, av, FALSE);
-  if (GMT_open_grd(craton_path, &Gcrat, 'r')) {
-    fprintf(stderr, "Couldn't open %s\n", craton_path);
-    exit(-1);
-  }
-
-  nx = Ggrad.header.nx;
-  ny = Ggrad.header.ny;
-
-  if ((grad = (float *)malloc(nx * sizeof(float))) == NULL) {
-    fprintf(stderr, "No memory for grad\n");
-    exit(-1);
-  }
-  if ((land = (float *)malloc(nx * sizeof(float))) == NULL) {
-    fprintf(stderr, "No memory for land\n");
-    exit(-1);
-  }
-  if ((craton = (float *)malloc(nx * sizeof(float))) == NULL) {
-    fprintf(stderr, "No memory for craton\n");
-    exit(-1);
-  }
-  if ((vs30 = (float *)malloc(nx * sizeof(float))) == NULL) {
-    fprintf(stderr, "No memory for vs30\n");
-    exit(-1);
-  }
+  G_hdr = Ggrad->header;
+  nx = G_hdr->n_columns;
+  ny = G_hdr->n_rows;
 
   /*
    * The output file has the same dimensions as Ggrad
    * so write the header, prep the output object, then open
    * the output for writing.
    */
-  memcpy(&Gout.header, &Ggrad.header, sizeof(struct GRD_HEADER));
-  memcpy(&Gout.header.name, vs30_path, GMT_LONG_TEXT);
-
-  if (GMT_write_grd_info(vs30_path, &Gout.header)) {
-    fprintf(stderr, "Couldn't write %s header\n", vs30_path);
-    exit(-1);
-  }
-
-  GMT_grd_init(&Gout.header, ac, av, FALSE);
-  memcpy(&Gout, &Ggrad, sizeof(struct GMT_GRDFILE));
-
-  if ((err = GMT_open_grd(vs30_path, &Gout, 'w')) != 0) {
-    fprintf(stderr, "Couldn't open %s: errno %ld\n", vs30_path, err);
+  if ((Gout = GMT_Create_Data(API, GMT_IS_GRID, GMT_IS_SURFACE,
+                  GMT_CONTAINER_AND_DATA, NULL,
+                  Ggrad->header->wesn, Ggrad->header->inc,
+                  GMT_GRID_NODE_REG, 0, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't create %s\n", vs30_path);
     exit(-1);
   }
 
@@ -188,18 +171,10 @@ int main(int ac, char **av) {
   }
 
   for (m = 0; m < ny; m++) {
-    if ((err = GMT_read_grd_row(&Ggrad, (GMT_LONG)m, grad)) != 0) {
-      fprintf(stderr, "Error %ld reading %s at row %zd\n", err, grad_path, m);
-      exit(-1);
-    }
-    if ((err = GMT_read_grd_row(&Gland, (GMT_LONG)m, land)) != 0) {
-      fprintf(stderr, "Error %ld reading %s at row %zd\n", err, land_path, m);
-      exit(-1);
-    }
-    if ((err = GMT_read_grd_row(&Gcrat, (GMT_LONG)m, craton)) != 0) {
-      fprintf(stderr, "Error %ld reading %s at row %zd\n", err, craton_path, m);
-      exit(-1);
-    }
+    grad = Ggrad->data + m * nx;
+    land = Gland->data + m * nx;
+    craton = Gcrat->data + m * nx;
+	vs30 = Gout->data + m * nx;
 
     for (i = 0; i < nx; i++) {
       /* Set areas covered by water to the water value */
@@ -264,23 +239,24 @@ int main(int ac, char **av) {
       /* Do a weighted average of craton and active vs30 */
       vs30[i] = craton[i] * tvs[0] + (1.0 - craton[i]) * tvs[1];
     }
-      
-    if (GMT_write_grd_row(&Gout, m, vs30)) {
-      fprintf(stderr, "Error writing %s\n", vs30_path);
-      exit(-1);
-    }
     if(++ndone % 100 == 0) {
       fprintf(stderr,"Done with %'ld of %'ld elements\n", ndone * nx, ny * nx);
     }
   }
-  GMT_close_grd(&Ggrad);
-  GMT_close_grd(&Gland);
-  GMT_close_grd(&Gcrat);
-  GMT_close_grd(&Gout);
-  free(grad);
-  free(land);
-  free(craton);
-  free(vs30);
+
+  fprintf(stderr, "Writing output file...");
+  if (GMT_Write_Data(API, GMT_IS_GRID,
+              GMT_IS_FILE, GMT_IS_SURFACE,
+              GMT_CONTAINER_AND_DATA, NULL,
+              vs30_path, Gout) != 0) {
+    fprintf(stderr, "Couldn't write %s\n", vs30_path);
+    exit(-1);
+  }
+  fprintf(stderr, "Done.\n");
+
+  GMT_End_IO(API, GMT_IN, 0);
+  GMT_End_IO(API, GMT_OUT, 0);
+  GMT_Destroy_Session(API);
 
   return 0;
 }

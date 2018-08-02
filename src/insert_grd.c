@@ -20,9 +20,6 @@
 
 const float defaultVs30 = 601.0;
 
-int readNwrite(struct GMT_GRDFILE *in, struct GMT_GRDFILE *out, 
-               float *buf, GMT_LONG row);
-
 int main(int ac, char **av) {
 
   /* Input files */
@@ -40,11 +37,13 @@ int main(int ac, char **av) {
   size_t g2_nx, g2_ny;
   float dx, dy;
 
-  struct GMT_GRDFILE G1, G2, Gmask, Gout;
-  float *g1b, *g2b, *maskb;
+  void *API;
+  struct GMT_GRID *G1, *G2, *Gmask, *Gout;
+  struct GMT_GRID_HEADER *G_hdr;
+  float *g1b, *g2b, *maskb, *outb;
   size_t i, j, nburn, npre;
   float val;
-  GMT_LONG err;
+  int err;
   struct stat sbuf;
 
   setpar(ac, av);
@@ -54,47 +53,53 @@ int main(int ac, char **av) {
   mstpar("gout", "s", gout);
   endpar();
 
-  if (stat(gout, &sbuf) != ENOENT) {
+  if (stat(gout, &sbuf) == 0) {
     unlink(gout);
   }
 
-  GMT_begin(ac,av);
+  API = GMT_Create_Session("insert_grd", 0, 0, NULL);
 
   /* Initialize the input objects and open the files */
-  GMT_grd_init(&G1.header, ac, av, FALSE);
-  if (GMT_open_grd(grid1, &G1, 'r')) {
-    fprintf(stderr, "Couldn't open %s\n", grid1);
+  fprintf(stderr, "Reading input files...");
+  if ((G1 = (struct GMT_GRID *)GMT_Read_Data(API, GMT_IS_GRID,
+				  GMT_IS_FILE, GMT_IS_SURFACE,
+				  GMT_CONTAINER_AND_DATA, NULL,
+				  grid1, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't read %s\n", grid1);
     exit(-1);
   }
-
-  GMT_grd_init(&G2.header, ac, av, FALSE);
-  if (GMT_open_grd(grid2, &G2, 'r')) {
-    fprintf(stderr, "Couldn't open %s\n", grid2);
+  if ((G2 = (struct GMT_GRID *)GMT_Read_Data(API, GMT_IS_GRID,
+				  GMT_IS_FILE, GMT_IS_SURFACE,
+				  GMT_CONTAINER_AND_DATA, NULL,
+				  grid2, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't read %s\n", grid2);
     exit(-1);
   }
-
-  GMT_grd_init(&Gmask.header, ac, av, FALSE);
-  if (GMT_open_grd(gmask, &Gmask, 'r')) {
-    fprintf(stderr, "Couldn't open %s\n", gmask);
+  if ((Gmask = (struct GMT_GRID *)GMT_Read_Data(API, GMT_IS_GRID,
+				  GMT_IS_FILE, GMT_IS_SURFACE,
+				  GMT_CONTAINER_AND_DATA, NULL,
+				  gmask, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't read %s\n", gmask);
     exit(-1);
   }
+  fprintf(stderr, "Done.\n");
 
-  g1_x1 = G1.header.x_min;
-  g1_x2 = G1.header.x_max;
-  g1_y1 = G1.header.y_min;
-  g1_y2 = G1.header.y_max;
-  g1_nx = G1.header.nx;
-  g1_ny = G1.header.ny;
+  g1_x1 = G1->header->wesn[GMT_XLO];
+  g1_x2 = G1->header->wesn[GMT_XHI];
+  g1_y1 = G1->header->wesn[GMT_YLO];
+  g1_y2 = G1->header->wesn[GMT_YHI];
+  g1_nx = G1->header->n_columns;
+  g1_ny = G1->header->n_rows;
 
-  g2_x1 = G2.header.x_min;
-  g2_x2 = G2.header.x_max;
-  g2_y1 = G2.header.y_min;
-  g2_y2 = G2.header.y_max;
-  g2_nx = G2.header.nx;
-  g2_ny = G2.header.ny;
+  g2_x1 = G2->header->wesn[GMT_XLO];
+  g2_x2 = G2->header->wesn[GMT_XHI];
+  g2_y1 = G2->header->wesn[GMT_YLO];
+  g2_y2 = G2->header->wesn[GMT_YHI];
+  g2_nx = G2->header->n_columns;
+  g2_ny = G2->header->n_rows;
 
-  dx = G1.header.x_inc;
-  dy = G1.header.y_inc;
+  dx = G1->header->inc[0];
+  dy = G1->header->inc[1];
 
   /* Do some sanity checks */
   if (g1_x1 >= g1_x2 || g1_y1 >= g1_y2 || 
@@ -113,41 +118,18 @@ int main(int ac, char **av) {
    * so write the header, prep the output object, then open
    * the output for writing.
    */
-  memcpy(&Gout.header, &G1.header, sizeof(struct GRD_HEADER));
-  memcpy(&Gout.header.name, gout, GMT_LONG_TEXT);
-
-  if (GMT_write_grd_info(gout, &Gout.header)) {
-    fprintf(stderr, "Couldn't write %s header\n", gout);
-    exit(-1);
-  }
-
-  GMT_grd_init(&Gout.header, ac, av, FALSE);
-  memcpy(&Gout, &G1, sizeof(struct GMT_GRDFILE));
-
-  if ((err = GMT_open_grd(gout, &Gout, 'w')) != 0) {
-    fprintf(stderr, "Couldn't open %s: errno %ld\n", gout, err);
+  if ((Gout = GMT_Create_Data(API, GMT_IS_GRID, GMT_IS_SURFACE,
+                  GMT_CONTAINER_AND_DATA, NULL,
+                  G1->header->wesn, G1->header->inc,
+                  GMT_GRID_NODE_REG, 0, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't create %s\n", gout);
     exit(-1);
   }
 
   /* 
-   * Allocate a buffer for reading and writing a row of grid1/gout
+   * Just copy the input to the output
    */
-  if ((g1b = (float *)malloc(g1_nx * sizeof(float))) == NULL) {
-    fprintf(stderr, "No memory for g1b\n");
-    exit(-1);
-  }
-  /* 
-   * Allocate working space
-   */
-  if ((g2b = (float *)malloc(g2_nx * sizeof(float))) == NULL) {
-    fprintf(stderr, "No memory for g2b\n");
-    exit(-1);
-  }
-  if ((maskb = (float *)malloc(g2_nx * sizeof(float))) == NULL) {
-    fprintf(stderr, "No memory for maskb\n");
-    exit(-1);
-  }
-
+  memcpy(Gout->data, G1->data, G1->header->size * sizeof(float));
 
   /* 
    * burn off all the data in grid1 prior to the top row 
@@ -155,15 +137,6 @@ int main(int ac, char **av) {
    * error 
    */
   nburn = (size_t)((g1_y2 - g2_y2) / dy + 0.1);
-  for (i = 0; i < nburn; ) {
-    if (readNwrite(&G1, &Gout, g1b, i) < 0) {
-      fprintf(stderr, "Error reading/writing row %zd (preroll)\n", i);
-      exit(-1);
-    }
-    if (++i % 100 == 0) {
-      fprintf(stderr, "Done with %zd rows of %zd\n", i, g1_ny);
-    }
-  }
 
   /* 
    * Step through grid2: npre is the number of points in x before
@@ -173,12 +146,10 @@ int main(int ac, char **av) {
   for (i = 0; i < g2_ny; ) {
 
     /* read, make weighted average, write */
-    if (GMT_read_grd_row(&G1,    i + nburn, g1b) ||
-        GMT_read_grd_row(&G2,    i,         g2b) ||
-        GMT_read_grd_row(&Gmask, i,         maskb)) {
-      fprintf(stderr, "Error reading row %zd\n", i);
-      exit(-1);
-    }
+    g1b = G1->data + (nburn + i) * g1_nx;
+	outb = Gout->data + (nburn + i) * g1_nx;
+    g2b = G2->data + i * g2_nx;
+    maskb = Gmask->data + i * g2_nx;
     for (j = 0; j < g2_nx; j++) {
       val = g2b[j] * maskb[j] + g1b[j+npre] * (1 - maskb[j]);
       /* 
@@ -200,49 +171,26 @@ int main(int ac, char **av) {
           val = g1b[j+npre];
         }
       }
-      g1b[j+npre] = val;
+      outb[j+npre] = val;
     }
-    if (GMT_write_grd_row(&Gout, (GMT_LONG)i + nburn, g1b)) {
-      fprintf(stderr, "Error writing row %zd\n", i);
-      return(-1);
-    }
-    if ((++i + nburn) % 100 == 0) {
-      fprintf(stderr, "Done with %zd rows of %zd\n", i + nburn, g1_ny);
+    if ((++i) % 100 == 0) {
+      fprintf(stderr, "Done with %zd rows of %zd\n", i, g2_ny);
     }
   }
 
-  /*
-   * Burn off the data below the insert grid, if any
-   */
-  for (i = nburn + g2_ny; i < g1_ny; ) {
-    if (readNwrite(&G1, &Gout, g1b, i) < 0) {
-      fprintf(stderr, "Error reading/writing row %zd (postroll)\n", i);
-      exit(-1);
-    }
-    if (++i % 100 == 0) {
-      fprintf(stderr, "Done with %zd rows of %zd\n", i, g1_ny);
-    }
+  fprintf(stderr, "Writing output...");
+  if (GMT_Write_Data(API, GMT_IS_GRID,
+              GMT_IS_FILE, GMT_IS_SURFACE,
+              GMT_CONTAINER_AND_DATA, NULL,
+              gout, Gout) != 0) {
+    fprintf(stderr, "Couldn't write %s\n", gout);
+    exit(-1);
   }
+  fprintf(stderr, "Done.\n");
 
-  GMT_close_grd(&G1);
-  GMT_close_grd(&G2);
-  GMT_close_grd(&Gmask);
-  GMT_close_grd(&Gout);
-  free((void *)g1b);
-  free((void *)g2b);
-  free((void *)maskb);
+  GMT_End_IO(API, GMT_IN, 0);
+  GMT_End_IO(API, GMT_OUT, 0);
+  GMT_Destroy_Session(API);
+
   exit(0);
-}
-
-int readNwrite(struct GMT_GRDFILE *in, struct GMT_GRDFILE *out, float *buf, GMT_LONG row) {
-
-  if (GMT_read_grd_row(in, row, buf)) {
-    fprintf(stderr, "readNwrite: Error reading\n");
-    return(-1);
-  }
-  if (GMT_write_grd_row(out, row, buf)) {
-    fprintf(stderr, "readNwrite: Error writing\n");
-    return(-1);
-  }
-  return 0;
 }

@@ -37,10 +37,6 @@
  * It's possible for roundoff error to accumulate using this method
  * but it doesn't seem to be a problem.
  *
- * The program only allocates space for and reads (fy * nx) points,
- * so if fy is considerably smaller than ny (and it should be) then
- * the program will use only a fraction of the memory required by
- * the full grid.
  */
 
 int main(int ac, char **av) {
@@ -63,9 +59,10 @@ int main(int ac, char **av) {
   size_t i, j;
   size_t first_row, last_row, first_col, last_col;
   size_t n_rows, n_cols, first_row_ix, last_row_ix;
-  struct GMT_GRDFILE Gin, Gout;
-  GMT_LONG err;
+  void *API; 
+  struct GMT_GRID *Gin, *Gout;
   struct stat sbuf;
+  int err;
 
   setpar(ac, av);
   mstpar("infile", "s", in_path);
@@ -83,22 +80,41 @@ int main(int ac, char **av) {
     fprintf(stderr, "Filter height must be odd, resetting to %zd\n", fy);
   }
 
-  if (stat(out_path, &sbuf) != ENOENT) {
+  if (stat(out_path, &sbuf) == 0) {
     unlink(out_path);
   }
 
-  GMT_begin(ac,av);
+  if ((API = GMT_Create_Session("smooth", 0, 0, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't initiate GMT session\n");
+    exit(-1);
+  }
 
   /* Initialize the input object and open the file */
-  GMT_grd_init(&Gin.header, ac, av, FALSE);
-  if (GMT_open_grd(in_path, &Gin, 'r')) {
-    fprintf(stderr, "Couldn't open %s\n", in_path);
+  fprintf(stderr, "Reading %s...", in_path);
+  if ((Gin = (struct GMT_GRID *)GMT_Read_Data(API, GMT_IS_GRID,
+			  GMT_IS_FILE, GMT_IS_SURFACE,
+		      GMT_CONTAINER_AND_DATA, NULL,
+		      in_path, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't read %s\n", in_path);
+    exit(-1);
+  }
+  fprintf(stderr, "Done.\n");
+  /* 
+   * The output file has the same dimensions as the input 
+   * so write the header, prep the output object, then open
+   * the output for writing.
+   */
+  if ((Gout = GMT_Create_Data(API, GMT_IS_GRID, GMT_IS_SURFACE,
+				  GMT_CONTAINER_AND_DATA, NULL,
+				  Gin->header->wesn, Gin->header->inc,
+				  GMT_GRID_NODE_REG, 0, NULL)) == NULL) {
+    fprintf(stderr, "Couldn't create %s\n", out_path);
     exit(-1);
   }
 
   /* Get the grid dimensions */
-  nx = Gin.header.nx;
-  ny = Gin.header.ny;
+  nx = Gin->header->n_columns;
+  ny = Gin->header->n_rows;
 
   if (nx <= fx || ny <= fy) {
     fprintf(stderr, "Grid dimensions %zd x %zd smaller than filter dimensions %zd x %zd\n", 
@@ -106,41 +122,9 @@ int main(int ac, char **av) {
     exit(-1);
   }
 
-  /* 
-   * The output file has the same dimensions as the input 
-   * so write the header, prep the output object, then open
-   * the output for writing.
-   */
-  memcpy(&Gout.header, &Gin.header, sizeof(struct GRD_HEADER));
-  memcpy(&Gout.header.name, out_path, GMT_LONG_TEXT);
-
-  if (GMT_write_grd_info(out_path, &Gout.header)) {
-    fprintf(stderr, "Couldn't write %s header\n", out_path);
-    exit(-1);
-  }
-
-  GMT_grd_init(&Gout.header, ac, av, FALSE);
-  memcpy(&Gout, &Gin, sizeof(struct GMT_GRDFILE));
-
-  if ((err = GMT_open_grd(out_path, &Gout, 'w')) != 0) {
-    fprintf(stderr, "Couldn't open %s: errno %ld\n", out_path, err);
-    exit(-1);
-  }
-
-  /* Allocate space for fy arrays of nx floats */
+  /* Allocate space for fy arrays of floats */
   if ((rows = (float **)malloc(ny * sizeof(float*))) == NULL) {
     fprintf(stderr, "No memory for rows\n");
-    exit(-1);
-  }
-  for (i = 0; i < fy; i++) {
-    if ((rows[i] = (float *)malloc(nx * sizeof(float))) == NULL) {
-      fprintf(stderr, "No memory for rows %zd\n", i);
-      exit(-1);
-    }
-  }
-  /* allocate the output array */
-  if ((out = (float *)malloc(nx * sizeof(float))) == NULL) {
-    fprintf(stderr, "No memory for out\n");
     exit(-1);
   }
   /* 
@@ -163,10 +147,7 @@ int main(int ac, char **av) {
 
   /* Prime the pump with the first fy/2+1 rows; note the <= in the for loop */
   for (j = first_row; j <= last_row; j++) {
-    if (GMT_read_grd_row(&Gin, (GMT_LONG)j, rows[j])) {
-      fprintf(stderr, "Error reading %s at row %zd\n", in_path, j);
-      exit(-1);
-    }
+    rows[j] = Gin->data + j * nx;
     for (i = 0; i < nx; i++) {
       col_sum[i] += rows[j][i];
     }
@@ -186,6 +167,7 @@ int main(int ac, char **av) {
     }
 
     /* Step through each column of the jth row of the output */
+	out = Gout->data + j * nx;
     for (i = 0; i < nx; i++) {
       /* compute the average of the points in the filter */
       out[i] = row_sum / (n_rows * n_cols);
@@ -208,11 +190,6 @@ int main(int ac, char **av) {
         row_sum += col_sum[last_col];
       }
       n_cols = last_col - first_col + 1;
-    }
-    /* write the row we just completed */
-    if (GMT_write_grd_row(&Gout, (GMT_LONG)j, out)) {
-      fprintf(stderr, "Error writing %s\n", out_path);
-      exit(-1);
     }
     /*
      * Shift down one row
@@ -240,10 +217,7 @@ int main(int ac, char **av) {
     if (last_row < (ny - 1)) {
       last_row++;
       last_row_ix = last_row % fy;
-      if (GMT_read_grd_row(&Gin, (GMT_LONG)j, rows[last_row_ix])) {
-        fprintf(stderr, "Error reading %s at row %zd\n", in_path, last_row);
-        exit(-1);
-      }
+      rows[last_row_ix] = Gin->data + last_row * nx;
       for (i = 0; i < nx; i++) {
         col_sum[i] += rows[last_row_ix][i];
       }
@@ -254,12 +228,21 @@ int main(int ac, char **av) {
     }
   }
 
-  GMT_close_grd(&Gin);
-  GMT_close_grd(&Gout);
-  free(out);
-  free(col_sum);
-  for (i = 0; i < fy; i++) {
-    free(rows[i]);
+  fprintf(stderr, "Writing %s...", out_path);
+  if (GMT_Write_Data(API, GMT_IS_GRID,
+			  GMT_IS_FILE, GMT_IS_SURFACE,
+		      GMT_CONTAINER_AND_DATA, NULL,
+		      out_path, Gout) != 0) {
+    fprintf(stderr, "Couldn't write %s\n", out_path);
+    exit(-1);
   }
+  fprintf(stderr, "Done.\n");
+
+  GMT_End_IO(API, GMT_IN, 0);
+  GMT_End_IO(API, GMT_OUT, 0);
+  GMT_Destroy_Session(API);
+
+  free(col_sum);
+  free(rows);
   return 0;
 }

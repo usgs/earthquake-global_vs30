@@ -71,7 +71,7 @@ $(OUTGRD) : ../src/insert_grd $(INGRD) vs30_ext_h2o600.grd weights.grd
 # outside = 0, inside ranging from 0 to 1). 
 #
 weights.grd : mask_smooth_2.grd
-	grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
+	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
 #
 # This is the smoothed grid, but it has anomalies in it from places where 
@@ -84,7 +84,7 @@ mask_smooth_2.grd : mask_2.grd ../src/smooth
 	../src/smooth infile=mask_2.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
 mask_2.grd : mask_smooth.grd
-	grdmath $< 0.5 GE = $@
+	gmt grdmath $< 0.5 GE = $@
 
 #
 # Smooth the mask. This will blur the border, but we'll fix that in a 
@@ -101,7 +101,7 @@ mask_smooth.grd : mask.grd ../src/smooth
 # are not considering the coastline a "border".
 #
 mask.grd : vs30_ext_h2o600.grd
-	grdmath -fg $< 0 GT = $@
+	gmt grdmath -fg $< 0 GT = $@
 
 #
 # The CA Vs30 is NaN in water (including lakes, rivers, etc) and outside CA. 
@@ -111,19 +111,19 @@ mask.grd : vs30_ext_h2o600.grd
 # dry outside CA as 0.
 #
 vs30_ext_h2o600.grd : vs30_$(RES)c_ext.grd landmask.grd
-	grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL AND = $@
+	gmt grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL AND = $@
 
 landmask.grd : 
-	grdlandmask -V -R$(CA_EXT_REGION) -I$(RES)s -G$@ -Df -N1/0/0/0/0
+	gmt grdlandmask -V -R$(CA_EXT_REGION) -I$(RES)s -G$@ -Df -N1/0/0/0/0
 
 #
 # Paste a 1-degree chunk of NaNs to the top of the map:
 #
 vs30_$(RES)c_ext.grd : vs30_$(RES)c.grd top.grd
-	grdpaste vs30_$(RES)c.grd top.grd -G$@
+	gmt grdpaste vs30_$(RES)c.grd top.grd -G$@
 
 top.grd : 
-	grdmath -R-124.475/-114.025/41.9916666667/43.0 -I$(RES)s 0 0 NAN = top.grd
+	gmt grdmath -R-124.475/-114.025/41.9916666667/43.0 -I$(RES)s 0 0 NAN = top.grd
 
 #
 # Rescale to proper resolution. If the output is coarser than the
@@ -133,10 +133,10 @@ top.grd :
 
 ifeq ($(IS_COARSER),true)
 vs30_$(RES)c.grd : Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd
-	grdfilter -I$(RES)s -D0 -Fg0.016 $< -G$@
+	gmt grdfilter -I$(RES)s -D0 -Fg0.016 $< -G$@
 else
 vs30_$(RES)c.grd : Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd
-	grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
+	gmt grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
 endif
 
 Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd :
@@ -163,58 +163,58 @@ plot_final_map_wus : wus.png
 # Plot the resampled base Vs30 map
 
 base.png : vs30_$(RES)c.grd
-	grdimage vs30_$(RES)c.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > base.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> base.ps
-	pscoast -JM12 -R$(CA_BASE_REGION) -O -N1 -N2 -W >> base.ps
+	gmt grdimage vs30_$(RES)c.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > base.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> base.ps
+	gmt pscoast -JM12 -R$(CA_BASE_REGION) -O -N1 -N2 -W >> base.ps
 	convert -rotate 90 base.ps base.png
  
 # Plot the landmask with CA Vs30s inserted:
  
 landmask.png : vs30_ext_h2o600.grd
-	grdimage vs30_ext_h2o600.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > landmask.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> landmask.ps
-	pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask.ps
+	gmt grdimage vs30_ext_h2o600.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > landmask.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> landmask.ps
+	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask.ps
 	convert -rotate 90 landmask.ps landmask.png
  
 # Plot the clipping mask:
 
 clipmask.png : mask.grd
-	grdimage mask.grd -JM12 -C$(WEIGHTS_CPT) -Ba2f1WSen -K > clipmask.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> clipmask.ps
+	gmt grdimage mask.grd -JM12 -C$(WEIGHTS_CPT) -Ba2f1WSen -K > clipmask.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> clipmask.ps
 	convert -rotate 90 clipmask.ps clipmask.png
  
 # Plot the smoothed clipping mask:
 
 landmask_smooth.png : mask_smooth.grd
-	grdimage mask_smooth.grd -JM12 -C$(WEIGHTS_CPT) -Ba2f1WSen -K > landmask_smooth.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> landmask_smooth.ps
-	pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask_smooth.ps
+	gmt grdimage mask_smooth.grd -JM12 -C$(WEIGHTS_CPT) -Ba2f1WSen -K > landmask_smooth.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> landmask_smooth.ps
+	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask_smooth.ps
 	convert -rotate 90 landmask_smooth.ps landmask_smooth.png
  
 # Plot the rescaled clipping mask.
 
 clipmask_2.png : mask_2.grd
-	grdimage mask_2.grd -JM12 -C$(WEIGHTS_CPT) -Ba2f1WSen -K > clipmask_2.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> clipmask_2.ps
-	pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> clipmask_2.ps
+	gmt grdimage mask_2.grd -JM12 -C$(WEIGHTS_CPT) -Ba2f1WSen -K > clipmask_2.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> clipmask_2.ps
+	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> clipmask_2.ps
 	convert -rotate 90 clipmask_2.ps clipmask_2.png
  
 # Plot the weights:
 
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba2f1WSen -K > weights.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps     
-	pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> weights.ps
+	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba2f1WSen -K > weights.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps     
+	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> weights.ps
 	convert -rotate 90 weights.ps weights.png
  
 # Plot the new Vs30 map in a cut out map of the western US
  
 wus.png : wus_vs30.grd
-	grdimage wus_vs30.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > wus.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> wus.ps
-	pscoast -JM12 -R$(WUS_REGION) -O -N1 -N2 -W >> wus.ps
+	gmt grdimage wus_vs30.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > wus.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> wus.ps
+	gmt pscoast -JM12 -R$(WUS_REGION) -O -N1 -N2 -W >> wus.ps
 	convert -rotate 90 wus.ps wus.png
 
 wus_vs30.grd : ../$(OUTGRD)
-	grdcut -R$(WUS_REGION) $< -G$@
+	gmt grdcut -R$(WUS_REGION) $< -G$@
 

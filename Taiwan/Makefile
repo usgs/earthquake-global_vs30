@@ -63,17 +63,17 @@ $(OUTGRD) : $(INGRD) taiwan.grd weights.grd ../src/insert_grd
 # weights = 1 where we have Vs30, = 0 where we don't 
 #
 weights.grd : tw_$(RES)c.grd
-	grdmath $< 0 AND 0 GT = $@
+	gmt grdmath $< 0 AND 0 GT = $@
 
 #
 # Make the insert map, set NaNs to the water velocity
 #
 taiwan.grd : tw_$(RES)c.grd
-	grdmath $< $(WATER) AND = $@
+	gmt grdmath $< $(WATER) AND = $@
 
 ifeq ($(IS_FINER),true)
 tw_$(RES)c.grd : $(TW_GRD_FILE)
-	grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
+	gmt grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
 else
 tw_$(RES)c.grd : $(TW_GRD_FILE)
 	cp $< $@
@@ -95,9 +95,9 @@ plot_raw_map : taiwan_raw.png
 # Plot the weights:
  
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba1WSen -K > weights.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
-	pscoast -JM12 -R$(TW_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba1WSen -K > weights.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
+	gmt pscoast -JM12 -R$(TW_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
  
 # Plot the new Vs30 map:
@@ -109,19 +109,19 @@ TW_REG_YMAX = $(shell echo $(TW_YMAX) + $(ONE) | bc)
 TW_REG = $(TW_REG_XMIN)/$(TW_REG_XMAX)/$(TW_REG_YMIN)/$(TW_REG_YMAX)
  
 taiwan.png : taiwan_region.grd
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba1WSen -K > taiwan_region.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> taiwan_region.ps
-	pscoast -JM12 -R$(TW_REG) -O -Df -N1 -N2 -W >> taiwan_region.ps
+	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba1WSen -K > taiwan_region.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> taiwan_region.ps
+	gmt pscoast -JM12 -R$(TW_REG) -O -Df -N1 -N2 -W >> taiwan_region.ps
 	convert -trim -density 300x300 -rotate 90 taiwan_region.ps taiwan_region.png
 
 taiwan_region.grd : ../$(OUTGRD)
-	grdcut -R$(TW_REG) $< -G$@
+	gmt grdcut -R$(TW_REG) $< -G$@
 
 # Plot the raw geology map
 
 taiwan_raw.png : $(TW_GRD_FILE)
-	grdimage $< -JM12 -C$(VS30_CPT) -Ba1WSen -K > taiwan_raw.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> taiwan_raw.ps
-	pscoast -JM12 -R$(TW_REGION) -O -Df -N1 -N2 -W >> taiwan_raw.ps
+	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba1WSen -K > taiwan_raw.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> taiwan_raw.ps
+	gmt pscoast -JM12 -R$(TW_REGION) -O -Df -N1 -N2 -W >> taiwan_raw.ps
 	convert -trim -rotate 90 -density 300x300 taiwan_raw.ps taiwan_raw.png
 

@@ -62,7 +62,7 @@ $(OUTGRD) : $(INGRD) ut_ext.grd weights.grd ../src/insert_grd
 # outside = 0, inside ranging from 0 to 1). 
 #
 weights.grd : mask_smooth.grd
-	grdmath -fg mask_smooth.grd 0.5 SUB 2 MUL DUP 0 GT MUL = weights.grd
+	gmt grdmath -fg mask_smooth.grd 0.5 SUB 2 MUL DUP 0 GT MUL = weights.grd
 
 #
 # Smooth the mask. This will blur the border, but we'll fix that in a 
@@ -78,7 +78,7 @@ mask_smooth.grd : mask.grd ../src/smooth
 # Make a clipping mask = 1 where we have Vs30, = 0 where we don't 
 #
 mask.grd : ut_ext.grd 
-	grdmath ut_ext.grd 0 GT = mask.grd
+	gmt grdmath ut_ext.grd 0 GT = mask.grd
 
 #
 # The Utah map doesn't have any water areas or coastlines, which simplifies
@@ -86,30 +86,30 @@ mask.grd : ut_ext.grd
 # have room to do our smoothing.
 #
 ut_ext.grd : $(MYEXT)_$(RES)c.grd north.grd south.grd west.grd east.grd
-	grdpaste $(MYEXT)_$(RES)c.grd north.grd -Gtmp.grd
-	grdpaste tmp.grd south.grd -Gut_ext.grd
-	grdpaste west.grd ut_ext.grd -Gtmp.grd
-	grdpaste tmp.grd east.grd -Gut_ext.grd
+	gmt grdpaste $(MYEXT)_$(RES)c.grd north.grd -Gtmp.grd
+	gmt grdpaste tmp.grd south.grd -Gut_ext.grd
+	gmt grdpaste west.grd ut_ext.grd -Gtmp.grd
+	gmt grdpaste tmp.grd east.grd -Gut_ext.grd
 	$(RM) tmp.grd
 
 north.grd :
-	grdmath -R-114.2/-108.9/42.4/42.9 -I$(RES)s 0 = north.grd
+	gmt grdmath -R-114.2/-108.9/42.4/42.9 -I$(RES)s 0 = north.grd
 
 south.grd :
-	grdmath -R-114.2/-108.9/36.3/36.8 -I$(RES)s 0 = south.grd
+	gmt grdmath -R-114.2/-108.9/36.3/36.8 -I$(RES)s 0 = south.grd
 
 west.grd :
-	grdmath -R-114.7/-114.2/36.3/42.9 -I$(RES)s 0 = west.grd
+	gmt grdmath -R-114.7/-114.2/36.3/42.9 -I$(RES)s 0 = west.grd
 
 east.grd :
-	grdmath -R-108.9/-108.2/36.3/42.9 -I$(RES)s 0 = east.grd
+	gmt grdmath -R-108.9/-108.2/36.3/42.9 -I$(RES)s 0 = east.grd
 
 #
 # Rescale to 30-second resolution and shift the map to make it co-register
 # with the global grid.
 #
 $(MYEXT)_$(RES)c.grd : utah6_geology_60s.grd
-	grdsample -nl+t0.1 -I$(RES)s -fg -R$(UTAH_BASE_REGION) $< -G$@
+	gmt grdsample -nl+t0.1 -I$(RES)s -fg -R$(UTAH_BASE_REGION) $< -G$@
 
 utah6_geology_60s.grd :
 	echo "Utah grid file utah6_geology_60s.grd must be supplied."
@@ -133,51 +133,51 @@ plot_raw_map : utah.png
 # Plot the base Vs30 Map:
  
 base.png : $(MYEXT)_$(RES)c.grd
-	grdimage $(MYEXT)_$(RES)c.grd -JM12 -C$(VS30_CPT) -Ba1WSen -K > base.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> base.ps
-	pscoast -JM12 -R$(UTAH_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
+	gmt grdimage $(MYEXT)_$(RES)c.grd -JM12 -C$(VS30_CPT) -Ba1WSen -K > base.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> base.ps
+	gmt pscoast -JM12 -R$(UTAH_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
 	convert -trim -density 300x300 -rotate 90 base.ps base.png
  
 # Plot the clipping mask:
  
 clipmask.png : mask.grd
-	grdimage mask.grd -JM12 -C$(WEIGHTS_CPT) -Ba1WSen -K > clipmask.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> clipmask.ps
-	pscoast -JM12 -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> clipmask.ps
+	gmt grdimage mask.grd -JM12 -C$(WEIGHTS_CPT) -Ba1WSen -K > clipmask.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> clipmask.ps
+	gmt pscoast -JM12 -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> clipmask.ps
 	convert -trim -rotate 90 clipmask.ps clipmask.png
  
 # Plot the smoothed clipping mask:
  
 mask_smooth.png : mask_smooth.grd
-	grdimage mask_smooth.grd -JM12 -C$(WEIGHTS_CPT) -Ba1WSen -K > mask_smooth.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> mask_smooth.ps
-	pscoast -JM12 -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> mask_smooth.ps
+	gmt grdimage mask_smooth.grd -JM12 -C$(WEIGHTS_CPT) -Ba1WSen -K > mask_smooth.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> mask_smooth.ps
+	gmt pscoast -JM12 -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> mask_smooth.ps
 	convert -trim -rotate 90 mask_smooth.ps mask_smooth.png
  
 # Plot the weights:
  
 weights.png : weights.grd
-	grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba1WSen -K > weights.ps
-	psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps     
-	pscoast -JM12 -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba1WSen -K > weights.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps     
+	gmt pscoast -JM12 -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 weights.ps weights.png
  
 # Plot the new Vs30 map:
  
 wus.png : wus_vs30.grd
-	grdimage wus_vs30.grd -JM12 -C$(VS30_CPT) -Ba4f2WSen -K > wus.ps
-	psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> wus.ps
-	pscoast -JM12 -R$(BIG_WUS_REGION) -O -Df -N1 -N2 -W >> wus.ps
+	gmt grdimage wus_vs30.grd -JM12 -C$(VS30_CPT) -Ba4f2WSen -K > wus.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> wus.ps
+	gmt pscoast -JM12 -R$(BIG_WUS_REGION) -O -Df -N1 -N2 -W >> wus.ps
 	convert -trim -density 300x300 -rotate 90 wus.ps wus.png
 
 wus_vs30.grd : ../$(OUTGRD)
-	grdcut -R$(BIG_WUS_REGION) $< -G$@
+	gmt grdcut -R$(BIG_WUS_REGION) $< -G$@
 
 # Plot the raw geology map using its own scale.
 
 utah.png : utah6_geology_60s.grd
-	grdimage utah6_geology_60s.grd -JM12 -C../Misc/utah.cpt -Ba1WSen -K > utah.ps
-	psscale -D14/4.3/9/0.5 -L -C../Misc/utah.cpt -O -K >> utah.ps
-	pscoast -R-114.2365/-108.877/36.7625/42.4865 -JM12 -N1 -N2 -W -Df -O >> utah.ps
+	gmt grdimage utah6_geology_60s.grd -JM12 -C../Misc/utah.cpt -Ba1WSen -K > utah.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C../Misc/utah.cpt -O -K >> utah.ps
+	gmt pscoast -R-114.2365/-108.877/36.7625/42.4865 -JM12 -N1 -N2 -W -Df -O >> utah.ps
 	convert -rotate 90 -density 300x300 utah.ps utah.png
 

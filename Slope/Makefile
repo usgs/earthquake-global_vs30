@@ -5,19 +5,7 @@ include ~/.vs30/Constants.mk
 
 .PHONY: all clean veryclean
 
-OLD_GRD = $(wildcard ../global_vs30_*.grd)
-
-ifneq ($(strip $(OLD_GRD)),)
-all : 
-	$(warning Skipping Slope processing: The global Vs30 directory\
-                $Nalready contains a global grid file with one or more regional stamps.\
-                $NIf you want to start fresh, remove '$(OLD_GRD)')
-else
-all : ../global_vs30.grd
-endif
-
-../global_vs30.grd : global_vs30.grd
-	cp global_vs30.grd ..
+all : global_vs30.grd
 
 global_vs30.grd : global_grad.grd global_landmask.grd cratons_smooth.grd \
                   ../src/grad2vs30

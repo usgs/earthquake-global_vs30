@@ -3,19 +3,6 @@
 #
 include ~/.vs30/Constants.mk
 
-#
-# MYEXT is this region's insert map extension. MYNAME is just for
-# informational messages. MYEXT must be defined before the Regional.mk
-# include file.
-#
-MYEXT = waor
-MYNAME = Pacific Northwest
-
-#
-# Regional include; sets INGRD and OUTGRD.
-#
-include ../Regional.mk
-
 PNW_BASE_REGION = -125.144158614/-116.462158614/41.995401663/49.083401663
 PNW_EXT_REGION = -126/-116/41/50
 
@@ -24,22 +11,13 @@ PNW_EXT_REGION = -126/-116/41/50
 
 IS_COARSER := $(shell [ $(IRES) -gt 20 ] && echo true)
 
-#
-# Regional.mk has the target "all" in it:
-#
-# all : ../$(OUTGRD)
-#
-#
-#../$(OUTGRD) : $(OUTGRD)
-#	$(RM) $(INGRD)
-#	cp $< ..
-#
+all : pnw.grd weights.grd
 
 plots : plot_base_map plot_ext_map plot_clip_mask plot_smooth_clip_mask \
         plot_clip_mask_2 plot_weights plot_final_map_waor plot_final_map_wus
 
 clean : clean_plots
-	$(RM) orwash20c_600.grd $(MYEXT)_$(RES)c.grd north.grd south.grd east.grd \
+	$(RM) orwash20c_600.grd waor_$(RES)c.grd north.grd south.grd east.grd \
               west.grd waor_ext.grd mask.grd \
               mask_smooth.grd mask_2.grd mask_smooth_2.grd \
               weights.grd 
@@ -49,15 +27,6 @@ clean_plots :
 	$(RM) wus_vs30.grd waor_embedded.grd
 
 veryclean : clean
-	$(RM) global_vs30*_$(MYEXT).grd
-
-#################################
-#
-# Run the insert program; this will insert the PNW map into the global grid 
-# that already has the CA map inserted:
-#
-$(OUTGRD) : $(INGRD) $(MYEXT)_$(RES)c.grd weights.grd ../src/insert_grd
-	../src/insert_grd grid1=$(INGRD) grid2=$(MYEXT)_$(RES)c.grd gout=$(OUTGRD) gmask=weights.grd
 
 #
 # We have values that range from 0 to 1. Areas outside the border will have 
@@ -67,7 +36,7 @@ $(OUTGRD) : $(INGRD) $(MYEXT)_$(RES)c.grd weights.grd ../src/insert_grd
 # outside = 0, inside ranging from 0 to 1). 
 #
 weights.grd : mask_smooth_2.grd
-	gmt grdmath -fg mask_smooth_2.grd 0.5 SUB 2 MUL DUP 0 GT MUL = weights.grd
+	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
 #
 # This is the smoothed grid, but it has anomalies in it from places where 
@@ -76,10 +45,10 @@ weights.grd : mask_smooth_2.grd
 #
 
 mask_smooth_2.grd : mask_2.grd ../src/smooth
-	../src/smooth infile=mask_2.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=mask_smooth_2.grd
+	../src/smooth infile=mask_2.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
 mask_2.grd : mask_smooth.grd
-	gmt grdmath mask_smooth.grd 0.5 GE = mask_2.grd
+	gmt grdmath $< 0.5 GE = $@
 
 #
 # Smooth the mask. This will blur the border, but we'll fix that in a 
@@ -89,14 +58,14 @@ mask_2.grd : mask_smooth.grd
 # fx = fy = 85:
 #
 mask_smooth.grd : mask.grd ../src/smooth
-	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=mask_smooth.grd
+	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
 #
 # The PNW Vs30 is now 600 everywhere outside of known geology. So now we
 # make a mask in which 600 -> 0, and everything else -> 1.
 #
-mask.grd : $(MYEXT)_$(RES)c.grd 
-	gmt grdmath $(MYEXT)_$(RES)c.grd $(WATER) NEQ = mask.grd
+mask.grd : pnw.grd 
+	gmt grdmath $< $(WATER) NEQ = $@
 
 #
 # Rescale to the proper resolution and shift the map to make it co-register
@@ -106,11 +75,11 @@ mask.grd : $(MYEXT)_$(RES)c.grd
 # For a finer grid, we just use grdsample with a nearest-neighbor sampling.
 #
 ifeq ($(IS_COARSER),true)
-$(MYEXT)_$(RES)c.grd : waor_ext.grd
-	gmt grdfilter -I$(RES)s -R$(PNW_EXT_REGION) -D0 -Fm0.016 waor_ext.grd -G$(MYEXT)_$(RES)c.grd
+pnw.grd : waor_ext.grd
+	gmt grdfilter -I$(RES)s -R$(PNW_EXT_REGION) -D0 -Fm0.016 $< -G$@
 else
-$(MYEXT)_$(RES)c.grd : waor_ext.grd
-	gmt grdsample -nn -I$(RES)s -fg -R$(PNW_EXT_REGION) waor_ext.grd -G$(MYEXT)_$(RES)c.grd
+pnw.grd : waor_ext.grd
+	gmt grdsample -nn -I$(RES)s -fg -R$(PNW_EXT_REGION) $< -G$@
 endif
 
 #
@@ -146,6 +115,9 @@ orwash20c_600.grd : orwash20c.grd
 orwash20c.grd :
 	echo "Washington/Oregon grid file orwash20c.grd must be supplied."
 
+../src/smooth :
+	$(MAKE) -C ../src smooth
+
 ###################################
 #
 # Plots
@@ -176,7 +148,7 @@ base.png : orwash20c.grd
 
 # Plot the extended Vs30 map:
 
-ext.png : $(MYEXT)_$(RES)c.grd 
+ext.png : pnw.grd 
 	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > ext.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> ext.ps
 	gmt pscoast -JM12 -R$(PNW_EXT_REGION) -Df -O -N1 -N2 -W >> ext.ps

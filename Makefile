@@ -2,8 +2,6 @@
 # Top-level Makefile for the Vs30 project
 #
 
-export LD_LIBRARY_PATH = /Users/cbworden/anaconda/lib
-
 #
 # Edit the list below to include only the insert maps you want 
 # in the final product. "Slope" should always be the first
@@ -65,7 +63,7 @@ clean : $(MKDIRS_CLEAN)
 veryclean : $(MKDIRS_VCLEAN)
 
 spotless : veryclean
-	$(RM) global_vs30*.grd
+	$(RM) global_vs30.grd
 
 $(INSERT_MAPS) :
 	$(MAKE) -C $@

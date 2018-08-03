@@ -73,7 +73,7 @@ taiwan.grd : tw_$(RES)c.grd
 
 ifeq ($(IS_FINER),true)
 tw_$(RES)c.grd : $(TW_GRD_FILE)
-	gmt grdsample -Ql0.1 -I$(RES)c -fg $< -G$@
+	gmt grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
 else
 tw_$(RES)c.grd : $(TW_GRD_FILE)
 	cp $< $@

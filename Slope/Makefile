@@ -89,7 +89,7 @@ cratons_smooth.grd : cratons.grd ../src/smooth
 
 #
 # Convert the craton.bil to a pixel registered .grd file, then convert that to gridline 
-# node registration; use -Qn to keep everything at 0 and 1:
+# node registration; use -nn to keep everything at 0 and 1:
 #
 cratons.grd : cratons.bil
 	gmt xyz2grd -R$(GLOBAL_REGION) -I$(RES)s -ZTLc -r cratons.bil -Gcratons_pixel.grd

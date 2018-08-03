@@ -41,6 +41,8 @@ MKDIRS_VCLEAN = $(patsubst %,%.vclean,$(MKDIRS))
 
 all : $(INSERT_MAPS) global_vs30.grd
 
+plots : global_vs30_plot
+
 global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 	California/california.grd California/weights.grd \
 	Australia/aus.grd Australia/weights.grd \
@@ -76,4 +78,16 @@ $(MKDIRS_VCLEAN) :
 
 src/insert_grd :
 	$(MAKE) -C src insert_grd
+
+######################
+#
+# Make plot
+#
+global_vs30_plot : global_vs30.png
+
+global_vs30.png : global_vs30.grd
+	gmt grdimage $< -JM20 -R-180/180/-56/72 -CMisc/global.cpt -Ba24d/a12eWSen -K > global_vs30.ps
+	gmt pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_vs30.ps
+	gmt psscale -D21/4.3/9/0.5 -L -CMisc/global.cpt -O >> global_vs30.ps
+	convert -rotate 90 -density 300x300 -crop 3000x1400+100+950 global_vs30.ps $@
 

@@ -3,40 +3,18 @@
 #
 include ~/.vs30/Constants.mk
 
-#
-# MYEXT is this region's insert map extension. MYNAME is just for
-# informational messages. MYEXT must be defined before the Regional.mk
-# include file.
-#
-MYEXT = ut
-MYNAME = Utah
-
-#
-# Regional include; sets INGRD and OUTGRD.
-#
-include ../Regional.mk
-
 UTAH_BASE_REGION = -114.2/-108.9/36.8/42.4
 UTAH_EXT_REGION = -114.7/-108.2/36.3/42.9
 
 .PHONY: all plots clean clean_plots veryclean
 
-#
-# Regional.mk has the target "all" in it:
-#
-# all : ../$(OUTGRD)
-#
-#
-#../$(OUTGRD) : $(OUTGRD)
-#	$(RM) $(INGRD)
-#	cp $< ..
-#
+all : ut_ext.grd weights.grd
 
 plots : plot_base_map plot_clip_mask plot_smooth_clip_mask plot_weights \
 	plot_final_map_wus plot_raw_map
 
 clean : clean_plots
-	$(RM) $(MYEXT)_$(RES)c.grd north.grd south.grd east.grd west.grd \
+	$(RM) ut_$(RES)c.grd north.grd south.grd east.grd west.grd \
               ut_ext.grd mask.grd mask_smooth.grd weights.grd 
 
 clean_plots :
@@ -44,15 +22,6 @@ clean_plots :
 	$(RM) wus_vs30.grd
 
 veryclean : clean
-	$(RM) global_vs30*_$(MYEXT).grd
-
-#################################
-#
-# Run the insert program; this will insert the Utah map into the global grid 
-# that may already have other regional maps inserted:
-#
-$(OUTGRD) : $(INGRD) ut_ext.grd weights.grd ../src/insert_grd 
-	../src/insert_grd grid1=$(INGRD) grid2=ut_ext.grd gmask=weights.grd gout=$(OUTGRD)
 
 #
 # We have values that range from 0 to 1. Areas outside the border will have 
@@ -62,7 +31,7 @@ $(OUTGRD) : $(INGRD) ut_ext.grd weights.grd ../src/insert_grd
 # outside = 0, inside ranging from 0 to 1). 
 #
 weights.grd : mask_smooth.grd
-	gmt grdmath -fg mask_smooth.grd 0.5 SUB 2 MUL DUP 0 GT MUL = weights.grd
+	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
 #
 # Smooth the mask. This will blur the border, but we'll fix that in a 
@@ -72,43 +41,43 @@ weights.grd : mask_smooth.grd
 # fx = fy = 85:
 #
 mask_smooth.grd : mask.grd ../src/smooth 
-	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=mask_smooth.grd
+	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
 #
 # Make a clipping mask = 1 where we have Vs30, = 0 where we don't 
 #
 mask.grd : ut_ext.grd 
-	gmt grdmath ut_ext.grd 0 GT = mask.grd
+	gmt grdmath $< 0 GT = $@
 
 #
 # The Utah map doesn't have any water areas or coastlines, which simplifies
 # things greatly. We paste a 0.5-degess chunk of zeroes all around so we
 # have room to do our smoothing.
 #
-ut_ext.grd : $(MYEXT)_$(RES)c.grd north.grd south.grd west.grd east.grd
-	gmt grdpaste $(MYEXT)_$(RES)c.grd north.grd -Gtmp.grd
+ut_ext.grd : ut_$(RES)c.grd north.grd south.grd west.grd east.grd
+	gmt grdpaste ut_$(RES)c.grd north.grd -Gtmp.grd
 	gmt grdpaste tmp.grd south.grd -Gut_ext.grd
 	gmt grdpaste west.grd ut_ext.grd -Gtmp.grd
 	gmt grdpaste tmp.grd east.grd -Gut_ext.grd
 	$(RM) tmp.grd
 
 north.grd :
-	gmt grdmath -R-114.2/-108.9/42.4/42.9 -I$(RES)s 0 = north.grd
+	gmt grdmath -R-114.2/-108.9/42.4/42.9 -I$(RES)s 0 = $@
 
 south.grd :
-	gmt grdmath -R-114.2/-108.9/36.3/36.8 -I$(RES)s 0 = south.grd
+	gmt grdmath -R-114.2/-108.9/36.3/36.8 -I$(RES)s 0 = $@
 
 west.grd :
-	gmt grdmath -R-114.7/-114.2/36.3/42.9 -I$(RES)s 0 = west.grd
+	gmt grdmath -R-114.7/-114.2/36.3/42.9 -I$(RES)s 0 = $@
 
 east.grd :
-	gmt grdmath -R-108.9/-108.2/36.3/42.9 -I$(RES)s 0 = east.grd
+	gmt grdmath -R-108.9/-108.2/36.3/42.9 -I$(RES)s 0 = $@
 
 #
 # Rescale to 30-second resolution and shift the map to make it co-register
 # with the global grid.
 #
-$(MYEXT)_$(RES)c.grd : utah6_geology_60s.grd
+ut_$(RES)c.grd : utah6_geology_60s.grd
 	gmt grdsample -nl+t0.1 -I$(RES)s -fg -R$(UTAH_BASE_REGION) $< -G$@
 
 utah6_geology_60s.grd :
@@ -132,8 +101,8 @@ plot_raw_map : utah.png
 
 # Plot the base Vs30 Map:
  
-base.png : $(MYEXT)_$(RES)c.grd
-	gmt grdimage $(MYEXT)_$(RES)c.grd -JM12 -C$(VS30_CPT) -Ba1WSen -K > base.ps
+base.png : ut_$(RES)c.grd
+	gmt grdimage ut_$(RES)c.grd -JM12 -C$(VS30_CPT) -Ba1WSen -K > base.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> base.ps
 	gmt pscoast -JM12 -R$(UTAH_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
 	convert -trim -density 300x300 -rotate 90 base.ps base.png

@@ -3,19 +3,6 @@
 #
 include ~/.vs30/Constants.mk
 
-#
-# MYEXT is this region's insert map extension. MYNAME is just for
-# informational messages. MYEXT must be defined before the Regional.mk
-# include file.
-#
-MYEXT = jp
-MYNAME = Japan
-
-#
-# Regional include; sets INGRD and OUTGRD.
-#
-include ../Regional.mk
-
 JP_XMIN = 128.0
 JP_XMAX = 149.0
 JP_YMIN = 31.0
@@ -25,16 +12,7 @@ SHAPE_BASE = Z-V2-JAPAN-AMP-VS400_M250-SHAPE
 
 .PHONY: all plots clean clean_plots veryclean
 
-#
-# Regional.mk has the target "all" in it:
-#
-# all : ../$(OUTGRD)
-#
-#
-#../$(OUTGRD) : $(OUTGRD)
-#	$(RM) $(INGRD)
-#	cp $< ..
-#
+all : japan.grd weights.grd
 
 plots :  plot_raw_map plot_weights plot_final_map
 
@@ -50,15 +28,6 @@ clean_plots :
 
 veryclean : clean
 	$(RM) -rf shape
-	$(RM) global_vs30*_$(MYEXT).grd
-
-#################################
-#
-# Run the insert program; this will insert the Japan map into the 
-# global grid that may already have other maps inserted:
-#
-$(OUTGRD) : $(INGRD) japan.grd weights.grd ../src/insert_grd 
-	../src/insert_grd grid1=$(INGRD) grid2=japan.grd gmask=weights.grd gout=$(OUTGRD)
 
 #
 # Make a weighted clipping mask; this is trivial in this case

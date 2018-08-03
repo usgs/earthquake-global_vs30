@@ -3,19 +3,6 @@
 #
 include ~/.vs30/Constants.mk
 
-#
-# MYEXT is this region's insert map extension. MYNAME is just for
-# informational messages. MYEXT must be defined before the Regional.mk
-# include file.
-#
-MYEXT = nz
-MYNAME = NewZealand
-
-#
-# Regional include; sets INGRD and OUTGRD.
-#
-include ../Regional.mk
-
 NZ_XMIN = 166.0
 NZ_XMAX = 179.0
 NZ_YMIN = -47.5
@@ -26,16 +13,7 @@ IS_FINER := $(shell [ $(IRES) -lt 36 ] && echo true)
 
 .PHONY: all plots clean clean_plots veryclean
 
-#
-# Regional.mk has the targets "all" and ../$(OUTGRD) in it:
-#
-# all : ../$(OUTGRD)
-#
-#
-#../$(OUTGRD) : $(OUTGRD)
-#	$(RM) $(INGRD)
-#	cp $< ..
-#
+all : newzealand.grd weights.grd
 
 plots :  plot_raw_map plot_weights plot_final_map
 
@@ -48,14 +26,6 @@ clean_plots :
 
 veryclean : clean
 	$(RM) global_vs30*_$(MYEXT).grd
-
-#################################
-#
-# Run the insert program; this will insert the NZ map into the 
-# global grid that may already have other maps inserted:
-#
-$(OUTGRD) : $(INGRD) newzealand.grd weights.grd ../src/insert_grd 
-	../src/insert_grd grid1=$(INGRD) grid2=newzealand.grd gmask=weights.grd gout=$@
 
 #
 # Make a weighted clipping mask; this is trivial in this case

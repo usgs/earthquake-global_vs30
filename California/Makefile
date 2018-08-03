@@ -7,19 +7,6 @@
 #
 include ~/.vs30/Constants.mk
 
-#
-# MYEXT is this region's insert map extension. MYNAME is just for
-# informational messages. MYEXT must be defined before the Regional.mk
-# include file.
-#
-MYEXT = ca
-MYNAME = California
-
-#
-# Regional include; sets INGRD and OUTGRD.
-#
-include ../Regional.mk
-
 CA_BASE_REGION = -124.475/-114.025/32.05/41.9916666667
 CA_EXT_REGION = -124.475/-114.025/32.05/43.0
 
@@ -27,24 +14,15 @@ CA_EXT_REGION = -124.475/-114.025/32.05/43.0
          plot_vs30_landmask plot_clip_mask plot_smooth_clip_mask \
          plot_clip_mask_2 plot_weights plot_final_map_wus
 
-#
-# Regional.mk has the targets "all" and ../$(OUTGRD) in it:
-#
-# all : ../$(OUTGRD)
-#
-#
-#../$(OUTGRD) : $(OUTGRD)
-#	$(RM) $(INGRD)
-#	cp $< ..
-#
-
 IS_COARSER := $(shell [ $(IRES) -gt 20 ] && echo true)
+
+all : california.grd weights.grd
 
 plots : plot_base_map plot_vs30_landmask plot_clip_mask plot_smooth_clip_mask \
         plot_clip_mask_2 plot_weights plot_final_map_wus
 
 clean : clean_plots
-	$(RM) vs30_$(RES)c.grd top.grd vs30_$(RES)c_ext.grd landmask.grd \
+	$(RM) vs30_*c.grd top.grd vs30_*c_ext.grd landmask.grd \
               vs30_ext_h2o600.grd mask.grd mask_smooth.grd mask_2.grd \
               mask_smooth_2.grd weights.grd
 
@@ -53,14 +31,6 @@ clean_plots :
 	$(RM) wus_vs30.grd
 
 veryclean : clean
-	$(RM) global_vs30*_$(MYEXT).grd
-
-#
-# Insert the CA grid into the global grid found in the parent
-# directory
-#
-$(OUTGRD) : ../src/insert_grd $(INGRD) vs30_ext_h2o600.grd weights.grd
-	../src/insert_grd grid1=$(INGRD) grid2=vs30_ext_h2o600.grd gmask=weights.grd gout=$@
 
 #################################
 #
@@ -100,7 +70,7 @@ mask_smooth.grd : mask.grd ../src/smooth
 # Make a mask where inside the borders = 1, outside = 0 (note that we
 # are not considering the coastline a "border".
 #
-mask.grd : vs30_ext_h2o600.grd
+mask.grd : california.grd
 	gmt grdmath -fg $< 0 GT = $@
 
 #
@@ -110,7 +80,7 @@ mask.grd : vs30_ext_h2o600.grd
 # grid -- that will leave wet = 600, dry areas inside CA with the Vs30, and 
 # dry outside CA as 0.
 #
-vs30_ext_h2o600.grd : vs30_$(RES)c_ext.grd landmask.grd
+california.grd : vs30_$(RES)c_ext.grd landmask.grd
 	gmt grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL AND = $@
 
 landmask.grd : 
@@ -123,7 +93,7 @@ vs30_$(RES)c_ext.grd : vs30_$(RES)c.grd top.grd
 	gmt grdpaste vs30_$(RES)c.grd top.grd -G$@
 
 top.grd : 
-	gmt grdmath -R-124.475/-114.025/41.9916666667/43.0 -I$(RES)s 0 0 NAN = top.grd
+	gmt grdmath -R-124.475/-114.025/41.9916666667/43.0 -I$(RES)s 0 0 NAN = $@
 
 #
 # Rescale to proper resolution. If the output is coarser than the
@@ -141,6 +111,10 @@ endif
 
 Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd :
 	echo "California grid file Vs30_Cal_hyb_KT_ml_20c_fill_Ql.grd must be supplied."
+
+../src/smooth :
+	$(MAKE) -C ../src smooth
+
 
 ###################################################
 #

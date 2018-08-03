@@ -3,18 +3,7 @@
 #
 include ~/.vs30/Constants.mk
 
-#
-# MYEXT is this region's insert map extension. MYNAME is just for
-# informational messages. MYEXT must be defined before the Regional.mk
-# include file.
-#
-MYEXT = aus
-MYNAME = Australia
 AUS_GRD_FILE = asscm_wii_vs30.grd
-#
-# Regional include; sets INGRD and OUTGRD.
-#
-include ../Regional.mk
 
 AUS_XMIN = 112.921404378
 AUS_XMAX = 153.638071043
@@ -26,16 +15,7 @@ IS_FINER := $(shell [ $(IRES) -lt 30 ] && echo true)
 
 .PHONY: all plots clean clean_plots veryclean
 
-#
-# Regional.mk has the targets "all" and ../$(OUTGRD) in it:
-#
-# all : ../$(OUTGRD)
-#
-#
-#../$(OUTGRD) : $(OUTGRD)
-#	$(RM) $(INGRD)
-#	cp $< ..
-#
+all : aus.grd weights.grd
 
 plots :  plot_raw_map plot_weights plot_final_map
 
@@ -47,15 +27,6 @@ clean_plots :
 	$(RM) aus_region.grd
 
 veryclean : clean
-	$(RM) global_vs30*_$(MYEXT).grd
-
-#################################
-#
-# Run the insert program; this will insert the Australia map into the 
-# global grid that may already have other maps inserted:
-#
-$(OUTGRD) : $(INGRD) aus.grd weights.grd ../src/insert_grd 
-	../src/insert_grd grid1=$(INGRD) grid2=aus.grd gmask=weights.grd gout=$@
 
 #
 # Make a weighted clipping mask; this is trivial in this case

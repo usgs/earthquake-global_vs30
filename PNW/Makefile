@@ -110,7 +110,7 @@ $(MYEXT)_$(RES)c.grd : waor_ext.grd
 	gmt grdfilter -I$(RES)s -R$(PNW_EXT_REGION) -D0 -Fm0.016 waor_ext.grd -G$(MYEXT)_$(RES)c.grd
 else
 $(MYEXT)_$(RES)c.grd : waor_ext.grd
-	gmt grdsample -Qn -I$(RES)s -fg -R$(PNW_EXT_REGION) waor_ext.grd -G$(MYEXT)_$(RES)c.grd
+	gmt grdsample -nn -I$(RES)s -fg -R$(PNW_EXT_REGION) waor_ext.grd -G$(MYEXT)_$(RES)c.grd
 endif
 
 #

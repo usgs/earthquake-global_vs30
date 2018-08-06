@@ -11,12 +11,15 @@ global_vs30.grd : global_grad.grd global_landmask.grd cratons_smooth.grd \
                   ../src/grad2vs30
 	../src/grad2vs30 gradient_file=global_grad.grd craton_file=cratons_smooth.grd landmask_file=global_landmask.grd output_file=global_vs30.grd water=$(WATER)
 
-clean :
+clean : clean_plots
 	$(RM) cratons.bil cratons.hdr cratons.grd cratons_smooth.grd \
               global_landmask.grd elev/gmted_global.bil gmted_global.grd \
               global_grad.grd cratons_pixel.grd
 
-veryclean : clean
+clean_plots:
+	$(RM) *.ps *.png
+
+veryclean : clean clean_plots
 	$(RM) -rf elev
 	$(RM) -rf cratons
 	$(RM) global_vs30.grd
@@ -27,7 +30,7 @@ veryclean : clean
 # newer versions of GMT):
 #
 global_grad.grd : gmted_global.grd
-	gmt grdgradient gmted_global.grd -n+bg -fg -D -Sglobal_grad.grd -Gjunk.grd -V
+	gmt grdgradient $< -n+bg -fg -D -S$@ -Gjunk.grd -V
 	$(RM) junk.grd
 
 #
@@ -35,16 +38,16 @@ global_grad.grd : gmted_global.grd
 # node registration:
 #
 gmted_global.grd : elev/gmted_global.bil
-	gmt xyz2grd -ZTLh -r -R$(GLOBAL_REGION) -I$(RES)s elev/gmted_global.bil \
+	gmt xyz2grd -ZTLh -r -R$(GLOBAL_REGION) -I$(RES)s $< \
                 -Ggmted_global_pixel.grd
-	gmt grdsample gmted_global_pixel.grd -Ggmted_global.grd -T -fg
+	gmt grdsample gmted_global_pixel.grd -G$@ -T -fg
 	$(RM) gmted_global_pixel.grd
 
 #
 # Convert the DEM to .bil:
 #
 elev/gmted_global.bil : elev/md$(GRES)_grd
-	$(GDAL_PATH)/gdal_translate -of EHdr elev/md$(GRES)_grd elev/gmted_global.bil
+	$(GDAL_PATH)/gdal_translate -of EHdr $< $@
 
 #
 # Unzip the DEM; we have to touch the dir and files because they
@@ -60,19 +63,19 @@ elev/md$(GRES)_grd : elev/md$(GRES)_grd.zip
 #
 elev/md$(GRES)_grd.zip :
 	mkdir -p elev;
-	$(CURL) https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Grid_ZipFiles/md$(GRES)_grd.zip > elev/md$(GRES)_grd.zip 
+	$(CURL) https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Grid_ZipFiles/md$(GRES)_grd.zip > $@
 
 #
 # Create the landmask:
 #
 global_landmask.grd : 
-	gmt grdlandmask -V -R$(GLOBAL_REGION) -I$(RES)s -Gglobal_landmask.grd -Df
+	gmt grdlandmask -V -R$(GLOBAL_REGION) -I$(RES)s -G$@ -Df
 
 #
 # Smooth the craton file
 #
 cratons_smooth.grd : cratons.grd ../src/smooth
-	../src/smooth infile=cratons.grd fx=$(GLOBE_FX) fy=$(GLOBE_FY) outfile=cratons_smooth.grd
+	../src/smooth infile=cratons.grd fx=$(GLOBE_FX) fy=$(GLOBE_FY) outfile=$@
 
 
 #
@@ -80,18 +83,18 @@ cratons_smooth.grd : cratons.grd ../src/smooth
 # node registration; use -nn to keep everything at 0 and 1:
 #
 cratons.grd : cratons.bil
-	gmt xyz2grd -R$(GLOBAL_REGION) -I$(RES)s -ZTLc -r cratons.bil -Gcratons_pixel.grd
-	gmt grdsample cratons_pixel.grd -Gcratons.grd -T -fg -nn
+	gmt xyz2grd -R$(GLOBAL_REGION) -I$(RES)s -ZTLc -r $< -Gcratons_pixel.grd
+	gmt grdsample cratons_pixel.grd -G$@ -T -fg -nn
 	$(RM) cratons_pixel.grd
 
 #
 # Create the craton file from the shape files:
 #
-cratons.bil : cratons/cratons.shp
-	$(GDAL_PATH)/gdal_rasterize -burn 1 -of EHdr -init 0 -te $(GXMIN) $(GYMIN) $(GXMAX) $(GYMAX) -tr $(RES_DD) $(RES_DD) -ot Byte cratons/cratons.shp cratons.bil
+cratons.bil : cratons/cratons_nshmp.shp
+	$(GDAL_PATH)/gdal_rasterize -burn 1 -of EHdr -init 0 -te $(GXMIN) $(GYMIN) $(GXMAX) $(GYMAX) -tr $(RES_DD) $(RES_DD) -ot Byte $< $@
 
-cratons/cratons.shp : cratons.tgz
-	tar xvmf cratons.tgz
+cratons/cratons_nshmp.shp : cratons.tgz
+	tar xvmf $<
 
 cratons.tgz :
 	echo "File cratons.tgz must be supplied -- cannot make"

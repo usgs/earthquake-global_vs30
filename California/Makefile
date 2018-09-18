@@ -7,16 +7,16 @@
 #
 include ~/.vs30/Constants.mk
 
-CA_WEST = -124.501041651
-CA_EAST = -114.101041651
-CA_NORTH = 42.0989583288
-CA_SOUTH = 32.4989583288
+CA_WEST = -124.5
+CA_EAST = -114.1
+CA_NORTH = 42.1
+CA_SOUTH = 32.5
 
 CA_BASE_REGION = $(CA_WEST)/$(CA_EAST)/$(CA_SOUTH)/$(CA_NORTH)
 
-CA_EXT_EAST = -113.101041651
-CA_EXT_NORTH = 43.0989583288
-CA_EXT_SOUTH = 31.4989583288
+CA_EXT_EAST = -113.1
+CA_EXT_NORTH = 43.1
+CA_EXT_SOUTH = 31.5
 
 CA_EXT_REGION = $(CA_WEST)/$(CA_EXT_EAST)/$(CA_EXT_SOUTH)/$(CA_EXT_NORTH)
 
@@ -37,7 +37,7 @@ clean : clean_plots
               mask.grd mask_smooth.grd mask_2.grd east.grd \
               mask_smooth_2.grd weights.grd California_Vs30_7p5c_clean.grd \
               vs30_*c_top_bot.grd vs30_*c_top.grd california.grd bot.grd \
-              non_zero.grd
+              California_Vs30_7p5c_non_zero.grd non_zero.grd non_zero_2.grd
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -98,7 +98,7 @@ california.grd : vs30_$(RES)c_ext.grd landmask.grd
 	gmt grdmath vs30_$(RES)c_ext.grd landmask.grd 600 MUL ADD = $@
 
 landmask.grd : 
-	gmt grdlandmask -V -R$(CA_EXT_REGION) -I$(RES)s/$(RES)s -G$@ -Df -N1/0/1/0/1
+	gmt grdlandmask -V -R$(CA_EXT_REGION) -A4 -I$(RES)s/$(RES)s -G$@ -Df -N1/0/1/0/1
 
 #
 # Paste a 1-degree chunk of zeros to the top, bottom, and east side of the map:
@@ -130,7 +130,7 @@ east.grd :
 
 ifeq ($(IS_COARSER),true)
 vs30_$(RES)c.grd : California_Vs30_7p5c_clean.grd
-	gmt grdfilter -I$(RES)s+e/$(RES)s+e -T -D0 -Fg0.016 -fg $< -G$@
+	gmt grdfilter -I$(RES)s+e/$(RES)s+e -R$(CA_WEST)/$(CA_EAST)/$(CA_SOUTH)/$(CA_NORTH) -T -D0 -Fg0.016 -fg $< -G$@
 else
 vs30_$(RES)c.grd : California_Vs30_7p5c_clean.grd
 	gmt grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
@@ -200,9 +200,9 @@ base.png : vs30_$(RES)c.grd
  
 # Plot the landmask with CA Vs30s inserted:
  
-landmask.png : california.grd
-	gmt grdimage california.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > landmask.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> landmask.ps
+landmask.png : landmask.grd
+	gmt grdimage landmask.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > landmask.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> landmask.ps
 	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask.ps
 	convert -rotate 90 landmask.ps landmask.png
  

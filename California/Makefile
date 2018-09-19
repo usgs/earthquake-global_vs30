@@ -37,7 +37,7 @@ clean : clean_plots
               mask.grd mask_smooth.grd mask_2.grd east.grd \
               mask_smooth_2.grd weights.grd California_Vs30_7p5c_clean.grd \
               vs30_*c_top_bot.grd vs30_*c_top.grd california.grd bot.grd \
-              California_Vs30_7p5c_non_zero.grd non_zero.grd non_zero_2.grd
+              California_Vs30_7p5c_non_zero.grd non_zero.grd non_zero_2.grd non_zero_new.grd
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -130,7 +130,7 @@ east.grd :
 
 ifeq ($(IS_COARSER),true)
 vs30_$(RES)c.grd : California_Vs30_7p5c_clean.grd
-	gmt grdfilter -I$(RES)s+e/$(RES)s+e -R$(CA_WEST)/$(CA_EAST)/$(CA_SOUTH)/$(CA_NORTH) -T -D0 -Fg0.016 -fg $< -G$@
+	gmt grdfilter -I$(RES)s/$(RES)s -R$(CA_WEST)/$(CA_EAST)/$(CA_SOUTH)/$(CA_NORTH) -T -D0 -Fg0.016 -fg $< -G$@
 else
 vs30_$(RES)c.grd : California_Vs30_7p5c_clean.grd
 	gmt grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
@@ -200,9 +200,9 @@ base.png : vs30_$(RES)c.grd
  
 # Plot the landmask with CA Vs30s inserted:
  
-landmask.png : landmask.grd
-	gmt grdimage landmask.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > landmask.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> landmask.ps
+landmask.png : california.grd
+	gmt grdimage california.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > landmask.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> landmask.ps
 	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask.ps
 	convert -rotate 90 landmask.ps landmask.png
  

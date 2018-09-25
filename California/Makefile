@@ -164,7 +164,7 @@ plot_final_map_wus : wus.png
 original.png : California_Vs30_7p5c.grd
 	gmt grdimage California_Vs30_7p5c.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > original.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> original.ps
-	gmt pscoast -JM12 -R$(CA_BASE_REGION) -O -N1 -N2 -W >> original.ps
+	gmt pscoast -JM12 -R$(CA_BASE_REGION) -Df -O -N1 -N2 -W >> original.ps
 	convert -rotate 90 original.ps original.png
 
 # Plot the resampled base Vs30 map
@@ -172,7 +172,7 @@ original.png : California_Vs30_7p5c.grd
 base.png : vs30_$(RES)c.grd
 	gmt grdimage vs30_$(RES)c.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > base.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> base.ps
-	gmt pscoast -JM12 -R$(CA_BASE_REGION) -O -N1 -N2 -W >> base.ps
+	gmt pscoast -JM12 -R$(CA_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
 	convert -rotate 90 base.ps base.png
  
 # Plot the landmask with CA Vs30s inserted:
@@ -195,7 +195,7 @@ clipmask.png : mask.grd
 landmask_smooth.png : mask_smooth.grd
 	gmt grdimage mask_smooth.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > landmask_smooth.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> landmask_smooth.ps
-	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask_smooth.ps
+	gmt pscoast -JM12 -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> landmask_smooth.ps
 	convert -rotate 90 landmask_smooth.ps landmask_smooth.png
 
 # Plot the weights:
@@ -203,17 +203,17 @@ landmask_smooth.png : mask_smooth.grd
 weights.png : weights.grd
 	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -JM12 -Ba2f1WSen -K > weights.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps     
-	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> weights.ps
+	gmt pscoast -JM12 -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -rotate 90 weights.ps weights.png
  
 # Plot the new Vs30 map in a cut out map of the western US
  
 wus.png : wus_vs30.grd
-	gmt grdimage wus_vs30.grd -JM12 -C$(VS30_CPT) -Ba2f1WSen -K > wus.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> wus.ps
-	gmt pscoast -JM12 -R$(WUS_REGION) -O -N1 -N2 -W >> wus.ps
+	gmt grdimage wus_vs30.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > wus.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> wus.ps
+	gmt pscoast -JM12 -R$(WUS_REGION) -Df -O -N1 -N2 -W >> wus.ps
 	convert -rotate 90 wus.ps wus.png
 
-wus_vs30.grd : $(OUTGRD)
-	gmt grdcut -R$(WUS_REGION) $< -G../$@
+wus_vs30.grd : ../global_vs30.grd
+	gmt grdcut -R$(WUS_REGION) $< -G$@
 

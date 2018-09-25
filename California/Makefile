@@ -5,6 +5,7 @@
 #
 # Include the boilerplate
 #
+
 include ~/.vs30/Constants.mk
 
 CA_WEST = -124.5
@@ -20,25 +21,21 @@ CA_EXT_SOUTH = 31.5
 
 CA_EXT_REGION = $(CA_WEST)/$(CA_EXT_EAST)/$(CA_EXT_SOUTH)/$(CA_EXT_NORTH)
 
-
 .PHONY : all plots clean clean_plots veryclean plot_base_map \
          plot_vs30_landmask plot_clip_mask plot_smooth_clip_mask \
-         plot_clip_mask_2 plot_weights plot_final_map_wus
+         plot_weights plot_final_map_wus
 
 IS_COARSER := $(shell [ $(IRES) -gt 7 ] && echo true)
 
 all : california.grd weights.grd
 
 plots : plot_original_map plot_base_map plot_vs30_landmask plot_clip_mask plot_smooth_clip_mask \
-        plot_clip_mask_2 plot_weights plot_final_map_wus
+        plot_weights plot_final_map_wus
 
 clean : clean_plots
-	$(RM) vs30_*c.grd top.grd vs30_*c_ext.grd landmask.grd \
-              mask.grd mask_smooth.grd mask_2.grd east.grd \
-              mask_smooth_2.grd weights.grd California_Vs30_7p5c_clean.grd \
-              vs30_*c_top_bot.grd vs30_*c_top.grd california.grd bot.grd \
-              California_Vs30_7p5c_non_zero.grd non_zero.grd non_zero_2.grd non_zero_new.grd \
-              lakes_600.grd
+	$(RM) vs30_*c.grd vs30_*c_ext.grd vs30_*c_top_bot.grd vs30_*c_top.grd landmask.grd \
+              mask.grd mask_smooth.grd top.grd east.grd bot.grd \
+              weights.grd california.grd lakes_600.grd california_SF_bay_1200.grd
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -55,19 +52,8 @@ veryclean : clean
 # outside = 0, inside ranging from 0 to 1). 
 #
 
-weights.grd : mask_smooth_2.grd
+weights.grd : mask_smooth.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
-
-
-############
-# Trial
-
-mask_smooth_2.grd : mask_2.grd ../src/smooth
-	../src/smooth infile=mask_2.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
-
-mask_2.grd : mask_smooth.grd
-	gmt grdmath $< 0.5 GE = $@
-
 
 #
 # Smooth the mask. This will blur the border, but we'll fix that in a 
@@ -89,13 +75,17 @@ mask.grd : california.grd
 	gmt grdmath -fg $< 0 GT = $@
 
 #
-# The CA Vs30 is 0 in water (including lakes, rivers, etc) and outside CA. 
-# So make a landmask wet=1 dry = 0. Then multiply by 600 to set all the water areas to 600 and 
-# do an ADD with the new Vs30 grid -- that will leave wet = 600, dry areas inside CA with the new Vs30, 
-# and dry outside CA as 0.
+# The CA Vs30 is 0 in the oceans and outside CA, and -1 in lakes. First make all -1 vales 600. 
+# Next make a landmask where oceans=1, dry = 0. Then multiply by 600 to set all the oceans to 600 and 
+# do an ADD with the new Vs30 grid -- that will leave wet (oceans and lakes) = 600, dry areas inside CA with the new Vs30, 
+# and dry outside CA as 0. Last, we fix SF Bay which was made 1200 by the ADD. Since it is the only 1200 value in the grid we
+# set all 1200 values to 600.
 #
 
-california.grd : lakes_600.grd landmask.grd
+california.grd : california_SF_bay_1200.grd
+	gmt grdmath $< DUP 1200 EQ 600 MUL SUB = $@
+
+california_SF_bay_1200.grd : lakes_600.grd landmask.grd
 	gmt grdmath lakes_600.grd landmask.grd 600 MUL ADD = $@
 
 landmask.grd : 
@@ -103,7 +93,6 @@ landmask.grd :
 
 lakes_600.grd : vs30_$(RES)c_ext.grd
 	gmt grdmath $< DUP 0 LT 601 MUL ADD = $@
-
 
 #
 # Paste a 1-degree chunk of zeros to the top, bottom, and east side of the map:
@@ -138,24 +127,8 @@ vs30_$(RES)c.grd : California_Vs30_7p5c.grd
 	gmt grdfilter -I$(RES)s/$(RES)s -R$(CA_WEST)/$(CA_EAST)/$(CA_SOUTH)/$(CA_NORTH) -T -D0 -Fg0.016 -fg $< -G$@
 else
 vs30_$(RES)c.grd : California_Vs30_7p5c.grd
-	gmt grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
+	gmt grdsample -nl+t0.1 -I$(RES)s/$(RES)s -R$(CA_WEST)/$(CA_EAST)/$(CA_SOUTH)/$(CA_NORTH) -fg $< -G$@
 endif
-
-#
-# Start by noticing that lakes are -1. Raise the floor so that all values are 0 or greater, and
-# make sure there are no NaN's in the data.
-
-# California_Vs30_7p5c_clean.grd : California_Vs30_7p5c_non_zero.grd non_zero_2.grd
-# 	gmt grdmath California_Vs30_7p5c_non_zero.grd non_zero_2.grd AND -fg = $@
-
-# non_zero_2.grd : California_Vs30_7p5c.grd
-# 	gmt grdmath California_Vs30_7p5c.grd 0 GE -fg = $@
-
-# California_Vs30_7p5c_non_zero.grd : California_Vs30_7p5c.grd non_zero.grd
-# 	gmt grdmath California_Vs30_7p5c.grd non_zero.grd MUL -fg = $@ 
-
-# non_zero.grd : California_Vs30_7p5c.grd
-# 	gmt grdmath California_Vs30_7p5c.grd 0 GE -fg = $@
 
 #
 # Check for the file.
@@ -171,17 +144,16 @@ California_Vs30_7p5c.grd :
 #
 # Plots
 #
+
 plot_original_map : original.png
 
 plot_base_map : base.png
 
-plot_vs30_landmask : landmask.png
+plot_vs30_landmask : california.png
 
 plot_clip_mask : clipmask.png
 
 plot_smooth_clip_mask : landmask_smooth.png
-
-plot_clip_mask_2 : landmask_smooth_2.png
 
 plot_weights : weights.png
 
@@ -205,11 +177,11 @@ base.png : vs30_$(RES)c.grd
  
 # Plot the landmask with CA Vs30s inserted:
  
-landmask.png : california.grd
+california.png : california.grd
 	gmt grdimage california.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > landmask.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> landmask.ps
 	gmt pscoast -JM12 -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> landmask.ps
-	convert -rotate 90 landmask.ps landmask.png
+	convert -rotate 90 landmask.ps california.png
  
 # Plot the clipping mask:
 
@@ -225,12 +197,6 @@ landmask_smooth.png : mask_smooth.grd
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> landmask_smooth.ps
 	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask_smooth.ps
 	convert -rotate 90 landmask_smooth.ps landmask_smooth.png
- 
-landmask_smooth_2.png : mask_smooth_2.grd
-	gmt grdimage mask_smooth_2.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > landmask_smooth_2.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> landmask_smooth_2.ps
-	gmt pscoast -JM12 -R$(CA_EXT_REGION) -O -N1 -N2 -W >> landmask_smooth_2.ps
-	convert -rotate 90 landmask_smooth_2.ps landmask_smooth_2.png
 
 # Plot the weights:
 

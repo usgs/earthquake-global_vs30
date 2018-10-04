@@ -42,7 +42,7 @@ int main(int ac, char **av) {
   void *API;
   struct GMT_GRID *G1, *G2, *Gmask, *Gout;
   struct GMT_GRID_HEADER *G_hdr;
-  float *g1b, *g2b, *maskb, *outb;
+  float *g2b, *maskb, *outb;
   size_t i, j, nburn, npre;
   float val;
   int err;
@@ -152,12 +152,11 @@ int main(int ac, char **av) {
     for (i = 0; i < g2_ny; ) {
 
       /* read, make weighted average, write */
-      g1b = G1->data + (nburn + i) * g1_nx;
       outb = Gout->data + (nburn + i) * g1_nx;
       g2b = G2->data + i * g2_nx;
       maskb = Gmask->data + i * g2_nx;
       for (j = 0; j < g2_nx; j++) {
-        val = g2b[j] * maskb[j] + g1b[j+npre] * (1 - maskb[j]);
+        val = g2b[j] * maskb[j] + outb[j+npre] * (1 - maskb[j]);
         /* 
          * It's possible for the smoothed mask to be non-zero outside 
          * of the border (consider a region with a concave outer border
@@ -165,7 +164,7 @@ int main(int ac, char **av) {
          * fix up the output point.
          */
         if (g2b[j] == 0 && maskb[j] > 0) {
-          if (g1b[j+npre] == 0) {
+          if (outb[j+npre] == 0) {
             fprintf(stderr,"Bad point x=%zd y=%zd, setting to %f\n",
                     i, j, defaultVs30);
             val = defaultVs30;
@@ -174,7 +173,7 @@ int main(int ac, char **av) {
              * This is the "normal" situation; just use the background 
              * grid 
              */
-            val = g1b[j+npre];
+            val = outb[j+npre];
           }
         }
         outb[j+npre] = val;

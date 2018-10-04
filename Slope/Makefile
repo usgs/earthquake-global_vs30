@@ -12,7 +12,7 @@ global_vs30.grd : global_grad.grd global_landmask.grd cratons_smooth.grd \
 	../src/grad2vs30 gradient_file=global_grad.grd craton_file=cratons_smooth.grd landmask_file=global_landmask.grd output_file=global_vs30.grd water=$(WATER)
 
 clean : clean_plots
-	$(RM) cratons.bil cratons.hdr cratons.grd cratons_smooth.grd \
+	$(RM) cratons.bil cratons.prj cratons.hdr cratons.grd cratons_smooth.grd \
               global_landmask.grd elev/gmted_global.bil gmted_global.grd \
               global_grad.grd cratons_pixel.grd
 

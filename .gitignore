@@ -12,3 +12,5 @@ src/insert_grd
 src/smooth
 **/.gmtcommands4
 **/gmt.history
+.DS_Store
+Slope/cratons.prj

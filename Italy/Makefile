@@ -14,13 +14,13 @@ IT_NORTH_EXT = 48.1083333333333
 
 IT_EXT_REGION = $(IT_WEST)/$(IT_EAST)/$(IT_SOUTH)/$(IT_NORTH_EXT)
 
-BIG_EUR_REGION = 0/30/28/55
+BIG_EUR_REGION = 4/21/34/50
 
 .PHONY: all plots clean clean_plots veryclean
 
 all : italy.grd final_mask.grd weights.grd
 
-plots : plot_base_map plot_final_mask plot_weights plot_italy \
+plots : plot_base_map plot_final_mask plot_weights plot_italy plot_final_map_eur \
 	plot_raw_map plot_it_non_zero_smooth plot_mask_a plot_new_mask plot_new_mask_mul
 
 clean : clean_plots
@@ -102,9 +102,6 @@ new_mask.grd : it_non_zero.grd landmask_smooth.grd
 landmask_smooth.grd : landmask.grd ../src/smooth
 	../src/smooth infile=landmask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
-# Mask a is almost there...it is zero in the water but there is a gradient inside italy still where it 
-# goes towards the coastlines. Italy blends with other countries well. 
-
 mask_a.grd : clipmask_smooth.grd landmask.grd
 	gmt grdmath clipmask_smooth.grd landmask.grd MUL = $@
 
@@ -176,7 +173,7 @@ plot_new_mask : new_mask.png
 
 plot_new_mask_mul : new_mask_mul_landmask_add_a.png
 
-# plot_final_map_eur : eur.png
+plot_final_map_eur : eur.png
 
 # Plot the final Vs30 Map:
 
@@ -244,11 +241,11 @@ italy_raw.png : italygeol60s_vsgrid.grd
 
 # Plot the new Vs30 map:
 
-# eur.png : eur_vs30.grd
-# 	gmt grdimage eur_vs30.grd -JM12 -C$(VS30_CPT) -Ba4f2WSen -K > eur.ps
-# 	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> eur.ps
-# 	gmt pscoast -JM12 -R$(BIG_EUR_REGION) -O -Df -N1 -N2 -W >> eur.ps
-# 	convert -trim -density 300x300 -rotate 90 eur.ps eur.png
+eur.png : eur_vs30.grd
+	gmt grdimage eur_vs30.grd -JM12 -C$(NEW_VS30_CPT) -Ba4f2WSen -K > eur.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> eur.ps
+	gmt pscoast -JM12 -R$(BIG_EUR_REGION) -O -Df -N1 -N2 -W >> eur.ps
+	convert -trim -density 300x300 -rotate 90 eur.ps eur.png
 
-# eur_vs30.grd : ../global_vs30.grd
-# 	gmt grdcut -R$(BIG_EUR_REGION) $< -G$@
+eur_vs30.grd : ../global_vs30.grd
+	gmt grdcut -R$(BIG_EUR_REGION) $< -G$@

@@ -41,9 +41,9 @@ plots : plot_original_map plot_base_map plot_vs30_landmask plot_clip_mask plot_s
         plot_weights plot_final_map_me
 
 clean : clean_plots
-	$(RM) vs30_*c.grd vs30_*c_ext.grd vs30_*c_top_bot.grd vs30_*c_top.grd landmask.grd \
-              mask.grd mask_smooth.grd top.grd east.grd bot.grd \
-              weights.grd iran.grd lakes_600.grd california_SF_bay_1200.grd
+	$(RM) vs30_*.grd  landmask*.grd \
+              mask.grd mask_smooth.grd top.grd east.grd bot.grd west.grd \
+              weights.grd iran.grd new_mask* mask* ir_* final_* gmt.history clipmask*
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -60,8 +60,8 @@ veryclean : clean
 # outside = 0, inside ranging from 0 to 1). 
 #
 
-weights.grd : mask_smooth.grd
-	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
+#weights.grd : final_mask.grd
+#	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
 #
 # Smooth the mask. This will blur the border, but we'll fix that in a 
@@ -71,16 +71,16 @@ weights.grd : mask_smooth.grd
 # fx = fy = 85:
 #
 
-mask_smooth.grd : mask.grd ../src/smooth 
-	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
+#mask_smooth.grd : mask.grd ../src/smooth 
+#	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
 #
 # Make a mask where inside the borders = 1, outside = 0 (note that we
 # are not considering the coastline a "border".
 #
 
-mask.grd : iran.grd
-	gmt grdmath -fg $< 0 GT = $@
+#mask.grd : weights.grd
+#	gmt grdmath -fg $< 0 GT = $@
 
 
 
@@ -94,12 +94,35 @@ mask.grd : iran.grd
 # set all 1200 values to 600.
 #
 
-# california.grd : california_SF_bay_1200.grd
-# 	gmt grdmath $< DUP 1200 EQ 600 MUL SUB = $@
+weights.grd : final_mask.grd
+	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
-# california_SF_bay_1200.grd : lakes_600.grd landmask.grd
-# 	gmt grdmath lakes_600.grd landmask.grd 600 MUL ADD = $@
+final_mask.grd : new_mask_mul_landmask_add_a.grd
+	gmt grdmath $< DUP 0 GE MUL = $@
 
+new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
+	gmt grdmath mask_a.grd new_mask_mul_landmask.grd ADD 1 SUB = $@
+
+new_mask_mul_landmask.grd : new_mask.grd landmask_land.grd
+	gmt grdmath new_mask.grd landmask_land.grd MUL = $@
+
+new_mask.grd : ir_non_zero.grd landmask_smooth.grd
+	gmt grdmath ir_non_zero.grd DUP NOT landmask_smooth.grd MUL ADD = $@
+
+landmask_smooth.grd : landmask_land.grd ../src/smooth
+	../src/smooth infile=landmask_land.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
+
+mask_a.grd : clipmask_smooth.grd landmask_land.grd
+	gmt grdmath clipmask_smooth.grd landmask_land.grd MUL = $@
+
+clipmask_smooth.grd : clipmask.grd ../src/smooth
+	../src/smooth infile=clipmask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
+
+clipmask.grd : landmask_water.grd ir_non_zero.grd
+	gmt grdmath landmask_water.grd ir_non_zero.grd ADD 0 GT = $@
+
+ir_non_zero.grd : vs30_$(RES)c_ext.grd
+	gmt grdmath $< 0 GT 0 AND = $@
 
 #
 # Create the grid that will be inserted into the global mosaic.
@@ -182,9 +205,7 @@ plot_base_map : base.png
 
 plot_vs30_landmask : iran.png
 
-plot_clip_mask : mask.png
-
-plot_smooth_clip_mask : mask_smooth.png
+plot_clip_mask : final_mask.png
 
 plot_weights : weights.png
 
@@ -216,18 +237,10 @@ iran.png : iran.grd
  
 # Plot the clipping mask:
 
-mask.png : mask.grd
-	gmt grdimage mask.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > mask.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O >> mask.ps
-	convert -rotate 90 mask.ps mask.png
- 
-# Plot the smoothed clipping mask:
-
-mask_smooth.png : mask_smooth.grd
-	gmt grdimage mask_smooth.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > mask_smooth.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> mask_smooth.ps
-	gmt pscoast -JM12 -R$(IR_EXT_REGION) -Df -O -N1 -N2 -W >> mask_smooth.ps
-	convert -rotate 90 mask_smooth.ps mask_smooth.png
+final_mask.png : final_mask.grd
+	gmt grdimage final_mask.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > final_mask.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O >> final_mask.ps
+	convert -rotate 90 final_mask.ps final_mask.png
 
 # Plot the weights:
 

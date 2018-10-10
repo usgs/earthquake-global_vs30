@@ -1,6 +1,7 @@
 #
 # Makefile for inserting Greece Vs30 grid into the global+regional grid
 #
+
 include ~/.vs30/Constants.mk
 
 GR_NORTH = 43
@@ -16,8 +17,9 @@ BIG_EUR_REGION = 4/21/34/50
 
 all : greece.grd weights.grd
 
-plots : plot_base_map plot_final_mask plot_weights plot_greece plot_final_map_eur \
-	plot_raw_map plot_greece_non_zero_smooth plot_mask_a plot_new_mask plot_new_mask_mul
+plots : plot_base_map plot_final_mask plot_weights plot_greece \
+	plot_raw_map plot_greece_non_zero_smooth plot_mask_a plot_new_mask plot_new_mask_mul \
+        plot_final_map_eur
 
 clean : clean_plots
 	$(RM) gr_$(RES)c.grd final_mask.grd gr_non_zero* landmask_smooth.grd \
@@ -42,44 +44,6 @@ veryclean : clean
 weights.grd : final_mask.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
-#
-# Smooth the mask. This will blur the border, but we'll fix that in a 
-# minute. We make the filter twice the width and height that we want (for the
-# same reason). We're using a 0.35 degree transition, which means a 0.7 degree 
-# filter, which is 84 grid points, but we want an odd number. That means 
-# fx = fy = 85:
-#
-
-# mask_smooth.grd : mask.grd ../src/smooth
-# 	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
-
-#
-# Make a clipping mask = 1 where we have Vs30, = 0 where we don't 
-#
-
-# mask.grd : italy.grd
-# 	gmt grdmath -fg $< 0 GT = $@
-
-#
-# Land outside Italy is still 603, so we want all 603 nodes to become 0. 
-# First, replace all 603 nodes with NaN's, then replace the NaN's with 0.
-# This can probably be done in one step but I couldn't find the grdmath command
-# to do it.
-#
-# This makes dry land outside Italy = 0, water = 600, and dry land inside Italy = new Vs30 values.
-#
-
-#
-# Now let's check to see if there are still 603 values inside italy (i.e., the grid maker
-# assigned it to water but GMT says it is not water. Venice??
-# 
-
-#
-# The Italy map has value 603 everywhere except where there is a calculated Vs30
-# value. This step makes all ocean, lake, and pond water 600. It leaves land nodes outside of Italy
-# equal to 603 still, and land nodes inside Italy = new Vs30 values. 
-# 
-
 final_mask.grd : new_mask_mul_landmask_add_a.grd
 	gmt grdmath $< DUP 0 GE MUL = $@
 
@@ -88,9 +52,6 @@ new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
 
 new_mask_mul_landmask.grd : new_mask.grd landmask_land.grd
 	gmt grdmath new_mask.grd landmask_land.grd MUL = $@
-
-# Now this one doen't have the same gradient from Italy to its coasts, but it does have the issues
-# of other countries being blended into their coasts.
 
 new_mask.grd : gr_non_zero.grd landmask_smooth.grd
 	gmt grdmath gr_non_zero.grd DUP NOT landmask_smooth.grd MUL ADD = $@
@@ -108,18 +69,10 @@ clipmask.grd : landmask_water.grd gr_non_zero.grd
 	gmt grdmath landmask_water.grd gr_non_zero.grd ADD 0 GT = $@
 
 gr_non_zero.grd : gr_$(RES)c.grd
-	gmt grdmath $< 0 GT = $@
+	gmt grdmath $< 0 GT 0 AND = $@
 
 #
-# Now make the weighted clipping mask
-#
-
-
-
-
-
-#
-# Now make the actual grid that will be inserted.
+# Now make the actual grid that will be inserted. Water is 600 and dry land not in Greece is 0.
 #
 
 greece.grd : landmask_water.grd gr_$(RES)c.grd
@@ -133,7 +86,8 @@ landmask_water.grd : gr_$(RES)c.grd
 
 #
 # Rescale to 30-second resolution and shift the map to make it co-register
-# with the global grid.
+# with the global grid. In this case the grid is already 30-second resolution
+# so this doesn't really do anything.
 #
 
 gr_$(RES)c.grd : Hellas-geology_18-30_34-43_30s.grd
@@ -157,7 +111,7 @@ plot_raw_map : greece_raw.png
 
 plot_greece : greece.png
 
-plot_it_non_zero_smooth : clipmask_smooth.png
+plot_greece_non_zero_smooth : clipmask_smooth.png
 
 plot_mask_a : mask_a.png
 

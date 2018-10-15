@@ -27,7 +27,7 @@ clean : clean_plots
 	$(RM) it_$(RES)c.grd north.grd final_mask.grd it_non_zero* landmask_smooth.grd \
               it_ext.grd weights.grd clipmask_smooth.grd mask_a.grd new_mask* \
 	      landmask.grd landmask_water.grd clipmask.grd \
-              gmt.history
+              italy.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png

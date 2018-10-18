@@ -51,7 +51,7 @@ global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 	PNW/pnw.grd PNW/weights.grd \
 	Taiwan/taiwan.grd Taiwan/weights.grd \
 	Utah/ut_ext.grd Utah/weights.grd \
-	Italy/italy.grd Italy/weights.grd
+	Italy/new_italy.grd Italy/weights.grd
 	./src/insert_grd gin=Slope/global_vs30.grd gout=$@ \
 		grid1=California/california.grd gmask1=California/weights.grd \
 		grid2=Australia/aus.grd gmask2=Australia/weights.grd \
@@ -60,7 +60,7 @@ global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 		grid5=PNW/pnw.grd gmask5=PNW/weights.grd \
 		grid6=Taiwan/taiwan.grd gmask6=Taiwan/weights.grd \
 		grid7=Utah/ut_ext.grd gmask7=Utah/weights.grd \
-		grid8=Italy/italy.grd gmask8=Italy/weights.grd
+		grid8=Italy/new_italy.grd gmask8=Italy/weights.grd
 
 clean : $(MKDIRS_CLEAN)
 

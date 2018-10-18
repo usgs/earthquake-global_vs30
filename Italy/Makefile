@@ -1,6 +1,7 @@
 #
-# Makefile for Italy Vs30 grid into the global+regional grid
+# Makefile for Italy Vs30 grid into the global mosaic grid
 #
+
 include ~/.vs30/Constants.mk
 
 IT_NORTH = 47.10833333333333
@@ -16,9 +17,14 @@ IT_EXT_REGION = $(IT_WEST)/$(IT_EAST)/$(IT_SOUTH)/$(IT_NORTH_EXT)
 
 BIG_EUR_REGION = 4/21/34/50
 
+IT_VEN_REGION = 11.7/12.4/44/45
+
+IT_ISLAND_REGION = 8.8/9.5/40.5/41
+
 .PHONY: all plots clean clean_plots veryclean
 
-all : italy.grd final_mask.grd weights.grd
+# all : italy.grd final_mask.grd weights.grd ven_landmask.grd
+all : new_italy.grd final_mask.grd weights.grd
 
 plots : plot_base_map plot_final_mask plot_weights plot_italy plot_final_map_eur \
 	plot_raw_map plot_it_non_zero_smooth plot_mask_a plot_new_mask plot_new_mask_mul
@@ -27,7 +33,9 @@ clean : clean_plots
 	$(RM) it_$(RES)c.grd north.grd final_mask.grd it_non_zero* landmask_smooth.grd \
               it_ext.grd weights.grd clipmask_smooth.grd mask_a.grd new_mask* \
 	      landmask.grd landmask_water.grd clipmask.grd \
-              italy.grd gmt.history
+              italy.grd gmt.history \
+              small_landmask* ven_new* it_ven.grd \
+              it_ven_mask.grd ven_landmask.grd island_landmask.grd new_italy.grd new_ven.grd it_island_mask.grd
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -111,14 +119,34 @@ clipmask_smooth.grd : clipmask.grd ../src/smooth
 clipmask.grd : landmask_water.grd it_non_zero.grd
 	gmt grdmath landmask_water.grd it_non_zero.grd ADD 0 GT = $@
 
+it_non_zero.grd : new_italy.grd
+	gmt grdmath $< 603 NEQ = $@
+
+
+new_italy.grd : island_landmask.grd new_ven.grd
+	gmt grdmath island_landmask.grd NOT new_ven.grd MUL island_landmask.grd ADD = $@
+
+island_landmask.grd : it_island_mask.grd landmask.grd new_ven.grd
+	gmt grdmath  landmask.grd it_island_mask.grd EQ new_ven.grd MUL DUP 600 GT 1000 MUL EXCH DUP 600 LT MUL ADD = $@
+
+it_island_mask.grd : it_island_coords.xy
+	gmt grdmask it_island_coords.xy -I$(RES)s -R$(IT_EXT_REGION) -N0/0/1 -fg -G$@
+
+
+new_ven.grd : ven_landmask.grd it_ext.grd
+	gmt grdmath ven_landmask.grd NOT it_ext.grd MUL ven_landmask.grd ADD = $@
+
+ven_landmask.grd : it_ven_mask.grd landmask.grd it_ext.grd
+	gmt grdmath landmask.grd it_ven_mask.grd EQ it_ext.grd MUL DUP 603 EQ 3 MUL SUB = $@
+
+it_ven_mask.grd : it_ven_coords.xy
+	gmt grdmask it_ven_coords.xy -I$(RES)s -R$(IT_EXT_REGION) -N0/0/1 -fg -G$@
+
 landmask_water.grd :
 	gmt grdlandmask -V -R$(IT_EXT_REGION) -I$(RES)s -G$@ -Df -N1/0/1/0/0
 
 landmask.grd :
 	gmt grdlandmask -V -R$(IT_EXT_REGION) -I$(RES)s -G$@ -Df -N0/1/0/1/0
-
-it_non_zero.grd : it_ext.grd
-	gmt grdmath $< 603 NEQ = $@
 
 #
 # Now make the actual grid that will be inserted.

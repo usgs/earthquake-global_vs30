@@ -1,5 +1,5 @@
 #
-# Makefile for Italy Vs30 grid into the global mosaic grid
+# Makefile for inserting Italy Vs30 grid into the global mosaic.
 #
 
 include ~/.vs30/Constants.mk
@@ -23,19 +23,15 @@ IT_ISLAND_REGION = 8.8/9.5/40.5/41
 
 .PHONY: all plots clean clean_plots veryclean
 
-# all : italy.grd final_mask.grd weights.grd ven_landmask.grd
 all : new_italy.grd final_mask.grd weights.grd
 
-plots : plot_base_map plot_final_mask plot_weights plot_italy plot_final_map_eur \
-	plot_raw_map plot_it_non_zero_smooth plot_mask_a plot_new_mask plot_new_mask_mul
+plots : plot_base_map plot_final_mask plot_weights plot_new_italy plot_raw_map \
+        plot_it_non_zero_smooth plot_mask_a plot_new_mask plot_new_mask_mul plot_final_map_eur
 
 clean : clean_plots
-	$(RM) it_$(RES)c.grd north.grd final_mask.grd it_non_zero* landmask_smooth.grd \
-              it_ext.grd weights.grd clipmask_smooth.grd mask_a.grd new_mask* \
-	      landmask.grd landmask_water.grd clipmask.grd \
-              italy.grd gmt.history \
-              small_landmask* ven_new* it_ven.grd \
-              it_ven_mask.grd ven_landmask.grd island_landmask.grd new_italy.grd new_ven.grd it_island_mask.grd
+	$(RM) it_$(RES)c.grd north.grd final_mask.grd it_non_zero* *mask* \
+              it_ext.grd weights.grd italy.grd gmt.history \
+              it_ven_mask.grd new_italy.grd new_ven.grd
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -44,56 +40,27 @@ clean_plots :
 veryclean : clean
 
 #
-# We have values that range from 0 to 1. Areas outside the border will have 
-# values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, 
-# inside ranging from 0 to 0.5), multiply by 2 (making outside still < 0, 
-# inside ranging from 0 to 1.0), and then keep only positive values (making 
-# outside = 0, inside ranging from 0 to 1). 
+# weights.grd is plotted and explained: We have values that range from 0 to 1. 
+# Areas outside the border will have values < 0.5, and inside > 0.5. 
+# So we subtract 0.5 (making outside < 0, inside ranging 
+# from 0 to 0.5), multiply by 2 (making outside still < 0,
+# inside ranging from 0 to 1.0), and then keep only positive values (making
+# outside = 0, inside ranging from 0 to 1).
 #
 
 weights.grd : final_mask.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
 #
-# Smooth the mask. This will blur the border, but we'll fix that in a 
-# minute. We make the filter twice the width and height that we want (for the
-# same reason). We're using a 0.35 degree transition, which means a 0.7 degree 
-# filter, which is 84 grid points, but we want an odd number. That means 
-# fx = fy = 85:
+# final_mask.grd is plotted.
 #
-
-# mask_smooth.grd : mask.grd ../src/smooth
-# 	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
-
-#
-# Make a clipping mask = 1 where we have Vs30, = 0 where we don't 
-#
-
-# mask.grd : italy.grd
-# 	gmt grdmath -fg $< 0 GT = $@
-
-#
-# Land outside Italy is still 603, so we want all 603 nodes to become 0. 
-# First, replace all 603 nodes with NaN's, then replace the NaN's with 0.
-# This can probably be done in one step but I couldn't find the grdmath command
-# to do it.
-#
-# This makes dry land outside Italy = 0, water = 600, and dry land inside Italy = new Vs30 values.
-#
-
-#
-# Now let's check to see if there are still 603 values inside italy (i.e., the grid maker
-# assigned it to water but GMT says it is not water. Venice??
-# 
-
-#
-# The Italy map has value 603 everywhere except where there is a calculated Vs30
-# value. This step makes all ocean, lake, and pond water 600. It leaves land nodes outside of Italy
-# equal to 603 still, and land nodes inside Italy = new Vs30 values. 
-# 
 
 final_mask.grd : new_mask_mul_landmask_add_a.grd
 	gmt grdmath $< DUP 0 GE MUL = $@
+
+#
+# new_mask_mul_landmask_add_a.grd is plotted.
+#
 
 new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
 	gmt grdmath mask_a.grd new_mask_mul_landmask.grd ADD 1 SUB = $@
@@ -101,8 +68,9 @@ new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
 new_mask_mul_landmask.grd : new_mask.grd landmask.grd
 	gmt grdmath new_mask.grd landmask.grd MUL = $@
 
-# Now this one doen't have the same gradient from Italy to its coasts, but it does have the issues
-# of other countries being blended into their coasts.
+#
+# new_mask.grd is plotted.
+#
 
 new_mask.grd : it_non_zero.grd landmask_smooth.grd
 	gmt grdmath it_non_zero.grd DUP NOT landmask_smooth.grd MUL ADD = $@
@@ -110,8 +78,21 @@ new_mask.grd : it_non_zero.grd landmask_smooth.grd
 landmask_smooth.grd : landmask.grd ../src/smooth
 	../src/smooth infile=landmask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
+#
+# mask_a.grd is plotted.
+#
+
 mask_a.grd : clipmask_smooth.grd landmask.grd
 	gmt grdmath clipmask_smooth.grd landmask.grd MUL = $@
+
+#
+# These steps are complicated to describe, so I've indicated above at which "checkpoint"
+# a plot is made. Note that the final goal is to have a mask which smooths the border between Italy
+# and other countries when those borders touch, but not to smooth any of Italy's coastline
+# or islands into the water.
+# 
+# The first plot of this portion of the workflow is made here, of "clipmask_smooth.grd"
+#
 
 clipmask_smooth.grd : clipmask.grd ../src/smooth
 	../src/smooth infile=clipmask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
@@ -122,6 +103,11 @@ clipmask.grd : landmask_water.grd it_non_zero.grd
 it_non_zero.grd : new_italy.grd
 	gmt grdmath $< 603 NEQ = $@
 
+#
+# Create a mask over the small square of missing/603 nodes on the island west of Italy.
+# Replace any values inside this small masked region which are GT 600 with 1000.
+# Insert back into the larger Italy grid. This grid can now be inserted into the global mosaic.
+#
 
 new_italy.grd : island_landmask.grd new_ven.grd
 	gmt grdmath island_landmask.grd NOT new_ven.grd MUL island_landmask.grd ADD = $@
@@ -132,28 +118,44 @@ island_landmask.grd : it_island_mask.grd landmask.grd new_ven.grd
 it_island_mask.grd : it_island_coords.xy
 	gmt grdmask it_island_coords.xy -I$(RES)s -R$(IT_EXT_REGION) -N0/0/1 -fg -G$@
 
+#
+# Insert the fixed ven region back into the larger Italy grid.
+#
 
 new_ven.grd : ven_landmask.grd it_ext.grd
 	gmt grdmath ven_landmask.grd NOT it_ext.grd MUL ven_landmask.grd ADD = $@
 
+#
+# Replace all 603 nodes not in the lake and within the small "ven" region with 600. 
+#
+
 ven_landmask.grd : it_ven_mask.grd landmask.grd it_ext.grd
 	gmt grdmath landmask.grd it_ven_mask.grd EQ it_ext.grd MUL DUP 603 EQ 3 MUL SUB = $@
 
+#
+# Two regions of this grid need to be "fixed" before the grid can be inserted. 
+#
+# The first, "ven", is the region just south of Venice in which the value 603 (unique
+# to water and dry area outside Italy) has been assigned to dry land inside Italy. 
+# The second is the small square on the island off the west coast of Italy, which has
+# also been given the unique value of 603 despite being dry land inside Italy.
+#
+# To begin fixing these regions, first we make a mask over the "ven" region.
+#
+
 it_ven_mask.grd : it_ven_coords.xy
 	gmt grdmask it_ven_coords.xy -I$(RES)s -R$(IT_EXT_REGION) -N0/0/1 -fg -G$@
+
+#
+# Create two landmasks - one which has value 1 for land and 0 for water, and one that
+# 1 for water and 0 for land.
+#
 
 landmask_water.grd :
 	gmt grdlandmask -V -R$(IT_EXT_REGION) -I$(RES)s -G$@ -Df -N1/0/1/0/0
 
 landmask.grd :
 	gmt grdlandmask -V -R$(IT_EXT_REGION) -I$(RES)s -G$@ -Df -N0/1/0/1/0
-
-#
-# Now make the actual grid that will be inserted.
-#
-
-italy.grd : it_ext.grd
-	gmt grdmath it_ext.grd DUP 603 EQ 3 MUL SUB = $@
 
 #
 # We're going to paste a 1 degree chunk of nodes on top of the grid to help
@@ -168,7 +170,7 @@ north.grd :
 	gmt grdmath -R$(IT_WEST)/$(IT_EAST)/$(IT_NORTH)/$(IT_NORTH_EXT) -I$(RES)s/$(RES)s 603 = $@
 
 #
-# Rescale to 30-second resolution and shift the map to make it co-register
+# Start by rescaling to 30-second resolution and shift the map to make it co-register
 # with the global grid.
 #
 
@@ -191,7 +193,7 @@ plot_weights : weights.png
 
 plot_raw_map : italy_raw.png
 
-plot_italy : italy.png
+plot_new_italy : new_italy.png
 
 plot_it_non_zero_smooth : clipmask_smooth.png
 
@@ -217,11 +219,11 @@ base.png : it_$(RES)c.grd
 	gmt pscoast -JM12 -R$(IT_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
 	convert -trim -density 300x300 -rotate 90 base.ps base.png
 
-italy.png : italy.grd
-	gmt grdimage italy.grd -JM12 -C$(NEW_VS30_CPT) -Ba1WSen -K > italy.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> italy.ps
-	gmt pscoast -JM12 -R$(IT_BASE_REGION) -Df -O -N1 -N2 -W >> italy.ps
-	convert -trim -density 300x300 -rotate 90 italy.ps italy.png
+new_italy.png : new_italy.grd
+	gmt grdimage new_italy.grd -JM12 -C$(NEW_VS30_CPT) -Ba1WSen -K > new_italy.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> new_italy.ps
+	gmt pscoast -JM12 -R$(IT_BASE_REGION) -Df -O -N1 -N2 -W >> new_italy.ps
+	convert -trim -density 300x300 -rotate 90 new_italy.ps new_italy.png
 
 # Plot the clipping mask:
  

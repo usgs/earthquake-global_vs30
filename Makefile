@@ -12,10 +12,11 @@ INSERT_MAPS = Slope \
               California \
               PNW \
               Utah \
-        	  Japan \
-        	  Taiwan \
-			  NZ \
-			  Australia
+                  Japan \
+                  Taiwan \
+                          NZ \
+                          Australia \
+                                 Italy
 
 #
 # This should be a complete list of subdirectories so that
@@ -29,8 +30,9 @@ MKDIRS = src \
          Utah \
          Japan \
          Taiwan \
-		 NZ \
-		 Australia
+                 NZ \
+                 Australia \
+                        Italy    
 
 MKDIRS_CLEAN = $(patsubst %,%.clean,$(MKDIRS))
 MKDIRS_VCLEAN = $(patsubst %,%.vclean,$(MKDIRS))
@@ -48,7 +50,8 @@ global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 	NZ/newzealand.grd NZ/weights.grd \
 	PNW/pnw.grd PNW/weights.grd \
 	Taiwan/taiwan.grd Taiwan/weights.grd \
-	Utah/ut_ext.grd Utah/weights.grd
+	Utah/ut_ext.grd Utah/weights.grd \
+	Italy/new_italy.grd Italy/weights.grd
 	./src/insert_grd gin=Slope/global_vs30.grd gout=$@ \
 		grid1=California/california.grd gmask1=California/weights.grd \
 		grid2=Australia/aus.grd gmask2=Australia/weights.grd \
@@ -56,7 +59,8 @@ global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 		grid4=NZ/newzealand.grd gmask4=NZ/weights.grd \
 		grid5=PNW/pnw.grd gmask5=PNW/weights.grd \
 		grid6=Taiwan/taiwan.grd gmask6=Taiwan/weights.grd \
-		grid7=Utah/ut_ext.grd gmask7=Utah/weights.grd
+		grid7=Utah/ut_ext.grd gmask7=Utah/weights.grd \
+		grid8=Italy/new_italy.grd gmask8=Italy/weights.grd
 
 clean : $(MKDIRS_CLEAN)
 

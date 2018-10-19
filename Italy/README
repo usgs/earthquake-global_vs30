@@ -1,0 +1,19 @@
+This directory creates a grid file and a weighted clipping mask suitable
+for inserting the Italy Vs30 map into the global Vs30 map.
+See the Makefile for specifics of the processing.
+
+To create the necessary files and insert them into the global map, run
+make in the Slope directory first, in the top level directory simply issue the command:
+
+        % make
+
+To create only the Italy Vs30 map and not insert it into the global grid, 
+simply type
+
+        % make 
+
+in this directory. Also, type
+
+        % make plots
+
+to create and view the intermediate steps. 

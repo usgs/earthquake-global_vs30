@@ -1,5 +1,5 @@
 #
-# Makefile for inserting Greece Vs30 grid into the global+regional grid
+# Makefile for inserting Greece Vs30 grid into the global mosaic.
 #
 
 include ~/.vs30/Constants.mk
@@ -41,11 +41,23 @@ veryclean : clean
 # outside = 0, inside ranging from 0 to 1). 
 #
 
+#
+# weights.grd is plotted.
+#
+
 weights.grd : final_mask.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
+#
+# final_mask.grd is plotted.
+#
+
 final_mask.grd : new_mask_mul_landmask_add_a.grd
 	gmt grdmath $< DUP 0 GE MUL = $@
+
+#
+# new_mask_mul_landmask_add_a.grd is plotted.
+#
 
 new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
 	gmt grdmath mask_a.grd new_mask_mul_landmask.grd ADD 1 SUB = $@
@@ -53,14 +65,26 @@ new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
 new_mask_mul_landmask.grd : new_mask.grd landmask_land.grd
 	gmt grdmath new_mask.grd landmask_land.grd MUL = $@
 
+#
+# new_mask.grd is plotted.
+#
+
 new_mask.grd : gr_non_zero.grd landmask_smooth.grd
 	gmt grdmath gr_non_zero.grd DUP NOT landmask_smooth.grd MUL ADD = $@
 
 landmask_smooth.grd : landmask_land.grd ../src/smooth
 	../src/smooth infile=landmask_land.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
+#
+# mask_a.grd is plotted.
+#
+
 mask_a.grd : clipmask_smooth.grd landmask_land.grd
 	gmt grdmath clipmask_smooth.grd landmask_land.grd MUL = $@
+
+#
+# clipmask_smooth.grd is plotted.
+#
 
 clipmask_smooth.grd : clipmask.grd ../src/smooth
 	../src/smooth infile=clipmask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
@@ -75,8 +99,11 @@ gr_non_zero.grd : gr_$(RES)c.grd
 # Now make the actual grid that will be inserted. Water is 600 and dry land not in Greece is 0.
 #
 
-greece.grd : landmask_water.grd gr_$(RES)c.grd
-	gmt grdmath gr_$(RES)c.grd landmask_water.grd 600 MUL AND = $@
+greece.grd : greece_land.grd landmask_water.grd
+	gmt grdmath greece_land.grd landmask_water.grd 600 MUL AND = $@
+
+greece_land.grd : landmask_land.grd gr_$(RES)c.grd
+	gmt grdmath gr_$(RES)c.grd landmask_land.grd 600 MUL AND = $@
 
 landmask_land.grd : gr_$(RES)c.grd
 	gmt grdlandmask -V -N0/1/0/1/0 -R$(GR_BASE_REGION) -I$(RES)s -G$@ -Df

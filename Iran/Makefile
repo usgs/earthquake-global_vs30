@@ -1,5 +1,5 @@
 #
-# Makefile for Iran Vs30 grid
+# Makefile for inserting Iran Vs30 grid into the global mosaic.
 #
 
 #
@@ -42,16 +42,17 @@ plots : plot_original_map plot_base_map plot_vs30_landmask plot_clip_mask plot_s
 
 clean : clean_plots
 	$(RM) vs30_*.grd  landmask*.grd \
-              mask.grd mask_smooth.grd top.grd east.grd bot.grd west.grd \
-              weights.grd iran.grd new_mask* mask* ir_* final_* gmt.history clipmask*
-
+              top.grd east.grd bot.grd west.grd \
+              weights.grd iran.grd new_mask* mask_a.grd ir_n* final_mask.grd gmt.history clipmask* \
+              *.aux.xml ir_lake_mask.grd nan_600.grd
 clean_plots :
 	$(RM) *.ps *.png
 	$(RM) me_vs30.grd
 
 veryclean : clean
 
-#################################
+#
+# weights.grd is plotted and explained:
 #
 # We have values that range from 0 to 1. Areas outside the border will have 
 # values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, 
@@ -60,42 +61,12 @@ veryclean : clean
 # outside = 0, inside ranging from 0 to 1). 
 #
 
-#weights.grd : final_mask.grd
-#	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
-
-#
-# Smooth the mask. This will blur the border, but we'll fix that in a 
-# minute. We make the filter twice the width and height that we want (for the
-# same reason). Let's try a 0.35 degree transition, which means a 0.7 degree 
-# filter, which is 84 grid points, but we want an odd number. That means 
-# fx = fy = 85:
-#
-
-#mask_smooth.grd : mask.grd ../src/smooth 
-#	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
-
-#
-# Make a mask where inside the borders = 1, outside = 0 (note that we
-# are not considering the coastline a "border".
-#
-
-#mask.grd : weights.grd
-#	gmt grdmath -fg $< 0 GT = $@
-
-
-
-
-
-#
-# The CA Vs30 is 0 in the oceans and outside CA, and -1 in lakes. First make all -1 vales 600. 
-# Next make a landmask where oceans=1, dry = 0. Then multiply by 600 to set all the oceans to 600 and 
-# do an ADD with the new Vs30 grid -- that will leave wet (oceans and lakes) = 600, dry areas inside CA with the new Vs30, 
-# and dry outside CA as 0. Last, we fix SF Bay which was made 1200 by the ADD. Since it is the only 1200 value in the grid we
-# set all 1200 values to 600.
-#
-
 weights.grd : final_mask.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
+
+#
+# final_mask.grd is plotted.
+#
 
 final_mask.grd : new_mask_mul_landmask_add_a.grd
 	gmt grdmath $< DUP 0 GE MUL = $@
@@ -121,26 +92,46 @@ clipmask_smooth.grd : clipmask.grd ../src/smooth
 clipmask.grd : landmask_water.grd ir_non_zero.grd
 	gmt grdmath landmask_water.grd ir_non_zero.grd ADD 0 GT = $@
 
-ir_non_zero.grd : vs30_$(RES)c_ext.grd
+ir_non_zero.grd : iran.grd
 	gmt grdmath $< 0 GT 0 AND = $@
 
 #
-# Create the grid that will be inserted into the global mosaic.
-# Water is 600, dry land outside Iran is 0, and dry land inside Iran has 
-# the new Vs30 values.
-# 
+# For more details on the steps that follow, please view the Italy Makefile
+# to see the same workflow and more plots of the intermediate steps.
+#
+########################################################################
 
-iran.grd : landmask_water.grd vs30_$(RES)c_ext.grd
-	gmt grdmath vs30_$(RES)c_ext.grd landmask_water.grd 600 MUL AND = $@
+#
+# Create the grid that will be inserted into the global mosaic. The final 
+# grid will be one in which water is 0, dry land outside Iran is 0, and dry 
+# land inside Iran has the new Vs30 values.
+#
+# The Iran Vs30 grid has one problem area - two lakes in the south
+# are not recognized by gmt's grdlandmask, therefore their values must be
+# manually set to 600 so before creating the clipping mask. The lakes are given NaN 
+# values, consistent with other lakes and oceans in Iran. To fix this, 
+# create a small mask around the region, make those two lakes 600 with AND,
+# and then multiply that grid with the mask, and then replace all remaining NaN's 
+# in the original mask with 0's. 
+#
 
-landmask_water.grd : 
+iran.grd : ir_nan_600_mask.grd vs30_$(RES)c_ext.grd
+	gmt grdmath vs30_$(RES)c_ext.grd ir_nan_600_mask.grd AND = $@
+
+ir_nan_600_mask.grd : nan_600.grd ir_lake_mask.grd
+	gmt grdmath ir_lake_mask.grd nan_600.grd MUL = $@
+
+nan_600.grd : vs30_$(RES)c_ext.grd
+	gmt grdmath $< 600 AND = $@
+
+ir_lake_mask.grd : ir_lake_coords.xy
+	gmt grdmask ir_lake_coords.xy -I$(RES)s -R$(IR_EXT_REGION) -N0/0/1 -fg -G$@
+
+landmask_water.grd :
 	gmt grdlandmask -V -R$(IR_EXT_REGION) -I$(RES)s/$(RES)s -G$@ -Df -N1/0/1/0/1
 
 landmask_land.grd :
 	gmt grdlandmask -V -R$(IR_EXT_REGION) -I$(RES)s/$(RES)s -G$@ -Df -N0/1/0/1/0
-
-# lakes_600.grd : vs30_$(RES)c_ext.grd
-# 	gmt grdmath $< DUP 0 LT 601 MUL ADD = $@
 
 #
 # Paste a 1-degree chunk of NaN's to the top, bottom, east, and west sides of the map:
@@ -177,7 +168,7 @@ east.grd :
 #
 
 ifeq ($(IS_COARSER),true)
-vs30_$(RES)c.grd : California_Vs30_7p5c.grd
+vs30_$(RES)c.grd : Iran_Hybrid_Vs30.grd
 	gmt grdfilter -I$(RES)s/$(RES)s -R$(IR_WEST)/$(IR_EAST)/$(IR_SOUTH)/$(IR_NORTH) -T -D0 -Fg0.016 -fg $< -G$@
 else
 vs30_$(RES)c.grd : Iran_Hybrid_Vs30.grd
@@ -252,7 +243,7 @@ weights.png : weights.grd
  
 # Plot the new Vs30 map in a cut out map of the western US
  
-wus.png : me_vs30.grd
+me.png : me_vs30.grd
 	gmt grdimage me_vs30.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > me_vs30.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> me_vs30.ps
 	gmt pscoast -JM12 -R$(ME_REGION) -Df -O -N1 -N2 -W >> me_vs30.ps

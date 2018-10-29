@@ -123,6 +123,9 @@ gr_$(RES)c.grd : Hellas-geology_18-30_34-43_30s.grd
 Hellas-geology_18-30_34-43_30s.grd :
 	echo "Greece grid file Hellas-geology_18-30_34-43_30s.grd must be supplied."
 
+../src/smooth :
+	$(MAKE) -C ../src smooth
+
 #################################
 #
 # Plots

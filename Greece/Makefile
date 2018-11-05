@@ -25,7 +25,7 @@ clean : clean_plots
 	$(RM) gr_$(RES)c.grd final_mask.grd gr_non_zero* landmask_smooth.grd \
               weights.grd clipmask_smooth.grd mask_a.grd new_mask* \
 	      landmask_land.grd landmask_water.grd clipmask.grd \
-              gmt.history greece.grd
+              gmt.history greece.grd greece_land.grd
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -82,7 +82,7 @@ landmask_smooth.grd : landmask_land.grd ../src/smooth
 mask_a.grd : clipmask_smooth.grd landmask_land.grd
 	gmt grdmath clipmask_smooth.grd landmask_land.grd MUL = $@
 
-#
+# 
 # clipmask_smooth.grd is plotted.
 #
 
@@ -97,6 +97,10 @@ gr_non_zero.grd : gr_$(RES)c.grd
 
 #
 # Now make the actual grid that will be inserted. Water is 600 and dry land not in Greece is 0.
+#
+# There is a small "buffer zone" around some coastal areas, where NaN values were assigned to
+# dry land inside Greece. These values are replaced with 600 m/s. The buffer zone is later averaged 
+# with the slope-based grid according to the weights.grd values. 
 #
 
 greece.grd : greece_land.grd landmask_water.grd

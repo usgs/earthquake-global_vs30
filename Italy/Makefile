@@ -180,6 +180,9 @@ it_$(RES)c.grd : italygeol60s_vsgrid.grd
 italygeol60s_vsgrid.grd :
 	echo "Italy grid file italygeol60s_vsgrid.grd must be supplied."
 
+../src/smooth :
+        $(MAKE) -C ../src smooth
+
 #################################
 #
 # Plots

@@ -5,23 +5,49 @@
 include ~/.vs30/Constants.mk
 
 GLOBAL_REGION = -180/180/-56/84
-SMALLER_REGION = -160/-100/40/70
+SMALLER_REGION = -130/-110/50/60
 
-all : ln_flin.grd FV.grd stable_regions.grd stable_glob.grd active_glob.grd combo_glob.grd \
-      FLIP_combo_glob.grd final_mask.grd final_mask_2.grd
+all : amp.grd
 
-plots : ln_flin_plot FV_plot clipmask_smooth final_mask final_mask_2
+plots : ln_flin_plot FV_plot clipmask_smooth final_mask final_mask_2 amp
 
 clean : clean_plots
-	$(RM) clipmask.grd clipmask_smooth.grd final_mask.grd mask_a.grd new_mask* landmask_smooth.grd *.aux.xml
-
-# amp_values.grd flin_lt.grd gmt.history ln_flin*.grd *_Vref.grd *FV* \
-        gt_V2.grd le_V1.grd le_V2_gt_V1.grd FLIP_* combo_glob.grd
+	$(RM) clipmask.grd clipmask_smooth.grd final_mask.grd mask_a.grd new_mask* landmask_smooth.grd *.aux.xml \
+        amp_values.grd flin_lt.grd gmt.history ln_flin*.grd *_Vref.grd *FV* \
+        gt_V2.grd le_V1.grd le_V2_gt_V1.grd FLIP_* combo_glob.grd amp.grd clipmask_* final_mask_2.grd \
+        fix_line* landmask* mask_a_2* pre_weights.grd weights.grd stable_regions.grd active_regions.grd \
+        active_glob.grd stable_glob.grd 
 
 clean_plots : 
 	$(RM) *.ps *.png
 
 veryclean : clean
+
+##################################
+# Make the final Amplification map.
+
+amp.grd : fix_line_3.grd combo_glob.grd
+	gmt grdmath fix_line_3.grd combo_glob.grd MUL = $@
+
+##################################
+# Combine the two clipping masks into one.
+
+# Make anything less than 0.5 = 0.5 and set water back to 0.
+
+fix_line_3.grd : landmask_land.grd fix_line_2.grd
+	gmt grdmath landmask_land.grd fix_line_2.grd MUL = $@
+
+fix_line_2.grd : fix_line.grd weights.grd
+	gmt grdmath weights.grd 0.5 GT weights.grd MUL fix_line.grd ADD = $@
+
+fix_line.grd : weights.grd
+	gmt grdmath $< 0.5 LT 0.5 MUL = $@
+
+weights.grd : pre_weights.grd final_mask_2.grd active_regions.grd
+	gmt grdmath final_mask_2.grd active_regions.grd MUL pre_weights.grd ADD = $@
+
+pre_weights.grd : final_mask.grd stable_regions.grd
+	gmt grdmath final_mask.grd stable_regions.grd MUL = $@
 
 ##################################
 # Make the SECOND weighted clipping mask.
@@ -152,9 +178,9 @@ combo_glob.grd : active_glob.grd stable_glob.grd
 # This is for the linear term.
 # We'll default to a .2 sec period for now.
 
-T = 0.2
-c = -0.6876
-Vc = 1392.61
+T = 1.0
+c = -1.0500
+Vc = 1109.95
 Vref = 760
 
 active_glob.grd : ln_flin.grd stable_regions.grd landmask_land.grd
@@ -193,10 +219,10 @@ f5 = -0.00614
 
 # Corner frequencies V1 and V2, as well as c, are a function of period.
 
-V1 = 314
-V2 = 760
+V1 = 278
+V2 = 1103
 Vref = 760
-c = -0.408
+c = -0.554
 
 stable_glob.grd : FV.grd stable_regions.grd landmask_land.grd
 	gmt grdmath FV.grd stable_regions.grd MUL landmask_land.grd MUL = $@
@@ -256,6 +282,8 @@ final_mask : final_mask.png
 
 final_mask_2 : final_mask_2.png
 
+amp : amp.png
+
 ln_flin_plot.png : ln_flin.grd
 	gmt grdimage $< -JM12 -R$(SMALLER_REGION) -C$(AMP_CPT) -Bpx8Snew -Bpy4Wnes -K > ln_flin_plot.ps
 	gmt psscale -D14/4.3/9/0.5 -Baf -C$(AMP_CPT) -O -K >> ln_flin_plot.ps
@@ -287,3 +315,9 @@ final_mask_2.png : final_mask_2.grd
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> final_mask_2.ps
 	gmt pscoast -JM12 -R$(SMALLER_REGION) -Df -O -N1 -N2 -W >> final_mask_2.ps
 	convert -trim -rotate 90 final_mask_2.ps final_mask_2.png
+
+amp.png : amp.grd
+	gmt grdimage $< -JM12 -R$(SMALLER_REGION) -C$(NEW_WEIGHTS_CPT) -Ba1WSen -K > amp.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> amp.ps
+	gmt pscoast -JM12 -R$(SMALLER_REGION) -Df -O -N1 -N2 -W >> amp.ps
+	convert -trim -rotate 90 amp.ps amp.png

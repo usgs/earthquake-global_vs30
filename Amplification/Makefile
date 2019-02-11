@@ -95,11 +95,6 @@ clipmask_smooth_2.grd : clipmask_2.grd ../src/smooth
 clipmask_2.grd : landmask_water.grd active_regions.grd
 	gmt grdmath landmask_water.grd active_regions.grd ADD 0 GT 1 AND = $@
 
-
-
-
-
-
 ##################################
 # Make the FIRST weighted clipping mask.
 
@@ -146,9 +141,6 @@ clipmask_smooth.grd : clipmask.grd ../src/smooth
 
 clipmask.grd : landmask_water.grd stable_regions.grd
 	gmt grdmath landmask_water.grd stable_regions.grd ADD 0 GT 1 AND = $@
-
-#gr_non_zero.grd : gr_$(RES)c.grd
-#gmt grdmath $< 0 GT 0 AND = $@
 
 ##################################
 # Make flipped maps - put the active amp. values in stable regions and vice versa.
@@ -317,7 +309,7 @@ final_mask_2.png : final_mask_2.grd
 	convert -trim -rotate 90 final_mask_2.ps final_mask_2.png
 
 amp.png : amp.grd
-	gmt grdimage $< -JM12 -R$(SMALLER_REGION) -C$(NEW_WEIGHTS_CPT) -Ba1WSen -K > amp.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> amp.ps
+	gmt grdimage $< -JM12 -R$(SMALLER_REGION) -C$(AMP_CPT) -Ba1WSen -K > amp.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(AMP_CPT) -O -K >> amp.ps
 	gmt pscoast -JM12 -R$(SMALLER_REGION) -Df -O -N1 -N2 -W >> amp.ps
 	convert -trim -rotate 90 amp.ps amp.png

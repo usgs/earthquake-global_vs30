@@ -193,19 +193,6 @@ ln_flin_le.grd : ../global_vs30.grd le_Vref.grd
 le_Vref.grd : ../global_vs30.grd
 	gmt grdmath $< $(Vc) LE = $@ 
 
-# These are the variables for the non-linear term.
-# The non-linear term is only useful for very large shaking. For small PGA values, 
-# it is scaled to be effectively negligible. 
-
-f1 = 0
-f3 = 0.1
-f4 = -0.2466
-f5 = -0.00614
-
-#f2 = f4 * exp(f5 * min(Vs30 or 760) - 360))
-
-#ln_Fnl = f1 + f2 * ln((PGAr + f3)/f3)
-
 #################
 # For stable cratonic regions we use the following relationship. 
 
@@ -247,9 +234,9 @@ le_V1.grd : ../global_vs30.grd
 active_regions.grd : stable_regions.grd
 	gmt grdmath $< -1 MUL 1 ADD = $@
 
-# Convert the stable_4.grd file into correct resolution and gridline node registration.
+# Convert the stable.grd file into correct resolution and gridline node registration.
 
-stable_regions.grd : stable_4.grd
+stable_regions.grd : stable.grd
 	gmt grdsample -nl+t0.1 -I$(RES)s+e/$(RES)s+e -fg -R$(GLOBAL_REGION) $< -G$@
 
 landmask_land.grd : 

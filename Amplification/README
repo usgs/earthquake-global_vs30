@@ -1,28 +1,16 @@
 This directory contains the Makefile to create an amplification map
-<<<<<<< HEAD
 using Vs30 values from the global grid. Current runtime on a standard 
 workstation is approximately 25 minutes.
-=======
-using Vs30 values from the global grid. 
->>>>>>> 5ba4b10b87adf1e5e23c7169433d34299213fe5c
 
 First, build the global grid by typing 
 
 % make
 
-<<<<<<< HEAD
 in the top level directory. Then, switch into this directory (Amplification) and type
 
 % make
 
 to create the amplification map.
-=======
-in the top level directory. Then, switch into this directory and type
-
-% make
-
-to create the amplification map. 
->>>>>>> 5ba4b10b87adf1e5e23c7169433d34299213fe5c
 
 To create the plots, type
 
@@ -32,10 +20,6 @@ To erase the amplification map and the plots, type
 
 % make clean
 
-<<<<<<< HEAD
 Or to erase only the plots, type
-=======
-To erase only the plots, type
->>>>>>> 5ba4b10b87adf1e5e23c7169433d34299213fe5c
 
 % make clean_plots

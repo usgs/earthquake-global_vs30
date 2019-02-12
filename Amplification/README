@@ -1,0 +1,25 @@
+This directory contains the Makefile to create an amplification map
+using Vs30 values from the global grid. Current runtime on a standard 
+workstation is approximately 25 minutes.
+
+First, build the global grid by typing 
+
+% make
+
+in the top level directory. Then, switch into this directory (Amplification) and type
+
+% make
+
+to create the amplification map.
+
+To create the plots, type
+
+% make plots
+
+To erase the amplification map and the plots, type 
+
+% make clean
+
+Or to erase only the plots, type
+
+% make clean_plots

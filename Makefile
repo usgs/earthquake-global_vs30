@@ -1,13 +1,23 @@
-#
+###############################################################################################
 # Top-level Makefile for the Vs30 project
 #
-
+# Previous versions of this software allowed you to add regions to the global map 
+# one at a time. However, this version now limits that ability (due to computational
+# restrictions) so that you can only add the regions listed below all at once. 
 #
+# Often, at least one plot in each of the regional directories' Makefiles requires 
+# global_vs30.grd to exist before the plot will be created. You can comment that plot out 
+# when first adding a new region, or create that file in the Slope directory by typing `make`
+# and copying it to the top level directory.
+#
+
+################################################################################################
 # Edit the list below to include only the insert maps you want 
 # in the final product. "Slope" should always be the first
 # item in the list. Add new map directories here, and in 
 # MKDIRS, below.
 #
+
 INSERT_MAPS = Slope \
               California \
               PNW \
@@ -24,6 +34,7 @@ INSERT_MAPS = Slope \
 # the clean and veryclean targets can do their thing. Add
 # new map directories here, and in INSERT_MAPS, above.
 #
+
 MKDIRS = src \
          Slope \
          California \
@@ -45,6 +56,11 @@ MKDIRS_VCLEAN = $(patsubst %,%.vclean,$(MKDIRS))
 all : $(INSERT_MAPS) global_vs30.grd
 
 plots : global_vs30_plot
+
+# Make sure to edit this section to reflect the regions listed above. Just follow 
+# the format / naming conventions and it should work without a problem. Keep in mind
+# both the weighted clipping mask and the new Vs30 grid need to be the same size and
+# co-registered. 
 
 global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 	California/california.grd California/weights.grd \
@@ -89,9 +105,9 @@ src/insert_grd :
 	$(MAKE) -C src insert_grd
 
 ######################
-#
 # Make plot
 #
+
 global_vs30_plot : global_vs30.png
 
 global_vs30.png : global_vs30.grd

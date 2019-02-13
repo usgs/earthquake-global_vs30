@@ -1,6 +1,7 @@
 #
 # Makefile for NZ Vs30 grid into the global+regional grid
 #
+
 include ~/.vs30/Constants.mk
 
 NZ_XMIN = 166.0
@@ -18,7 +19,7 @@ all : newzealand.grd weights.grd
 plots :  plot_raw_map plot_weights plot_final_map
 
 clean : clean_plots
-	$(RM) newzealand.grd weights.grd nz_*c.grd vs30_nz_gmt4.grd 
+	$(RM) newzealand.grd weights.grd nz_*c.grd vs30_nz_gmt4.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -27,18 +28,20 @@ clean_plots :
 veryclean : clean
 	$(RM) global_vs30*_$(MYEXT).grd
 
-#
+#####################################################################
 # Make a weighted clipping mask; this is trivial in this case
 # because our region is entirely surrounded by water; the 
 # weights = 1 everywhere
 #
+
 weights.grd : newzealand.grd
 	gmt grdmath $< 0 MUL 1 ADD = $@
 
-#
+################################################################################
 # Make the insert map, Set zeros to the water velocity, and values < 150 to 150
 # (per Nick Horspool)
 #
+
 newzealand.grd : nz_$(RES)c.grd
 	gmt grdmath $< DUP 0 EQ $(WATER) MUL ADD 150 MAX = $@
 
@@ -60,6 +63,7 @@ vs30_nz_gmt4_pixel.grd :
 #
 # Plots
 #
+
 plot_weights : weights.png
 
 plot_final_map : newzealand.png
@@ -88,7 +92,7 @@ newzealand.png : newzealand_region.grd
 	gmt pscoast -JM12 -R$(NZ_REG) -O -Df -N1 -N2 -W >> newzealand_region.ps
 	convert -trim -density 300x300 -rotate 90 newzealand_region.ps newzealand_region.png
 
-newzealand_region.grd : ../$(OUTGRD)
+newzealand_region.grd : ../global_vs30.grd
 	gmt grdcut -R$(NZ_REG) $< -G$@
 
 # Plot the raw geology map

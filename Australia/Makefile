@@ -1,6 +1,9 @@
 #
 # Makefile for Australia Vs30 grid into the global+regional grid
 #
+# Note this is a good example of the case where your regional map is just an island. 
+#
+
 include ~/.vs30/Constants.mk
 
 AUS_GRD_FILE = asscm_wii_vs30.grd
@@ -20,7 +23,7 @@ all : aus.grd weights.grd
 plots :  plot_raw_map plot_weights plot_final_map
 
 clean : clean_plots
-	$(RM) aus.grd weights.grd aus_*c.grd
+	$(RM) aus.grd weights.grd aus_*c.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -28,19 +31,25 @@ clean_plots :
 
 veryclean : clean
 
-#
+#####################################################################
 # Make a weighted clipping mask; this is trivial in this case
 # because our region is entirely surrounded by water; the 
 # weights = 1 where we have Vs30, = 0 where we don't 
 #
+
 weights.grd : aus_$(RES)c.grd
 	gmt grdmath $< 0 AND 0 GT = $@
 
-#
+#####################################################################
 # Make the insert map, set NaNs to the water velocity
 #
+
 aus.grd : aus_$(RES)c.grd
 	gmt grdmath $< $(WATER) AND = $@
+
+####################################################################
+# Check the resolution of the input map against the desired output
+# resolution. 
 
 ifeq ($(IS_FINER),true)
 aus_$(RES)c.grd : $(AUS_GRD_FILE)
@@ -54,9 +63,9 @@ $(AUS_GRD_FILE) :
 	( echo "File $(AUS_GRD_FILE) must be supplied." && false )
 
 ####################################
-#
 # Plots
 #
+
 plot_weights : weights.png
 
 plot_final_map : aus.png
@@ -66,8 +75,8 @@ plot_raw_map : aus_raw.png
 # Plot the weights:
  
 weights.png : weights.grd
-	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba10f5eWSn -K > weights.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
+	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -JM12 -Ba10f5eWSn -K > weights.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps
 	gmt pscoast -JM12 -R$(AUS_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
  
@@ -85,7 +94,7 @@ aus.png : aus_region.grd
 	gmt pscoast -JM12 -R$(AUS_REG) -O -Df -N1 -N2 -W >> aus_region.ps
 	convert -trim -density 300x300 -rotate 90 aus_region.ps aus_region.png
 
-aus_region.grd : ../$(OUTGRD)
+aus_region.grd : ../global_vs30.grd
 	gmt grdcut -R$(AUS_REG) $< -G$@
 
 # Plot the raw geology map

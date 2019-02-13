@@ -1,6 +1,7 @@
 #
-# Makefile for PNW Vs30 grid into the global+CA grid
+# Makefile for PNW Vs30 grid into the global grid
 #
+
 include ~/.vs30/Constants.mk
 
 PNW_BASE_REGION = -125.144158614/-116.462158614/41.995401663/49.083401663
@@ -17,10 +18,10 @@ plots : plot_base_map plot_ext_map plot_clip_mask plot_smooth_clip_mask \
         plot_clip_mask_2 plot_weights plot_final_map_waor plot_final_map_wus
 
 clean : clean_plots
-	$(RM) orwash20c_600.grd waor_$(RES)c.grd north.grd south.grd east.grd \
+	$(RM) pnw.grd orwash20c_600.grd waor_$(RES)c.grd north.grd south.grd east.grd \
               west.grd waor_ext.grd mask.grd \
               mask_smooth.grd mask_2.grd mask_smooth_2.grd \
-              weights.grd 
+              weights.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -28,7 +29,7 @@ clean_plots :
 
 veryclean : clean
 
-#
+################################################################################
 # We have values that range from 0 to 1. Areas outside the border will have 
 # values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, 
 # inside ranging from 0 to 0.5), multiply by 2 (making outside still < 0, 
@@ -38,7 +39,7 @@ veryclean : clean
 weights.grd : mask_smooth_2.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
-#
+###############################################################################
 # This is the smoothed grid, but it has anomalies in it from places where 
 # the Vs30 grid is 600 inside the borders.  To fix this, we 
 # re-binary (?) the mask, then smooth it again:
@@ -50,30 +51,33 @@ mask_smooth_2.grd : mask_2.grd ../src/smooth
 mask_2.grd : mask_smooth.grd
 	gmt grdmath $< 0.5 GE = $@
 
-#
+#################################################################################
 # Smooth the mask. This will blur the border, but we'll fix that in a 
 # minute. We make the filter twice the width and height that we want (for the
 # same reason). Let's try a 0.35 degree transition, which means a 0.7 degree 
 # filter, which is 84 grid points, but we want an odd number. That means 
 # fx = fy = 85:
 #
+
 mask_smooth.grd : mask.grd ../src/smooth
 	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
-#
+################################################################################
 # The PNW Vs30 is now 600 everywhere outside of known geology. So now we
 # make a mask in which 600 -> 0, and everything else -> 1.
 #
+
 mask.grd : pnw.grd 
 	gmt grdmath $< $(WATER) NEQ = $@
 
-#
+###############################################################################
 # Rescale to the proper resolution and shift the map to make it co-register
 # with the global grid. For a coarser grid, we want to filter, but we also
 # want to preserve the quantized Vs30 values, so we use a 3x3 median filter, 
 # which preserves most (but for some reason not all) of the Vs30 values.
 # For a finer grid, we just use grdsample with a nearest-neighbor sampling.
 #
+
 ifeq ($(IS_COARSER),true)
 pnw.grd : waor_ext.grd
 	gmt grdfilter -I$(RES)s -R$(PNW_EXT_REGION) -D0 -Fm0.016 $< -G$@
@@ -82,10 +86,11 @@ pnw.grd : waor_ext.grd
 	gmt grdsample -nn -I$(RES)s -fg -R$(PNW_EXT_REGION) $< -G$@
 endif
 
-#
+###############################################################################
 # In this map, 600 is used as water/unknown geology. The map is kind of tight
 # so we paste a 1-degree chunk of 600s to each side:
 #
+
 waor_ext.grd : orwash20c_600.grd north.grd south.grd west.grd east.grd
 	gmt grdpaste orwash20c_600.grd north.grd -Gtmp.grd
 	gmt grdpaste tmp.grd south.grd -Gwaor_ext.grd
@@ -105,10 +110,11 @@ west.grd :
 east.grd :
 	gmt grdmath -R-116.462158614/-115.462158614/40.995401663/50.083401663 -I20s $(WATER) = east.grd
 
-#
+##########################################################################################################
 # This grid uses NaN as water and unknown gelolgy, but we want 600, so 
 # we fix that
 #
+
 orwash20c_600.grd : orwash20c.grd
 	gmt grdmath orwash20c.grd 600 AND = orwash20c_600.grd
 
@@ -119,9 +125,9 @@ orwash20c.grd :
 	$(MAKE) -C ../src smooth
 
 ###################################
-#
 # Plots
 #
+
 plot_base_map : base.png
 
 plot_ext_map : ext.png
@@ -194,7 +200,7 @@ wus.png : wus_vs30.grd
 	gmt pscoast -JM12 -R$(WUS_REGION) -O -Df -N1 -N2 -W >> wus.ps
 	convert -trim -density 300x300 -rotate 90 wus.ps wus.png
 
-wus_vs30.grd : ../$(OUTGRD)
+wus_vs30.grd : ../global_vs30.grd
 	gmt grdcut -R$(WUS_REGION) $< -G$@
  
 # Plot the new Vs30 map at the original scale:
@@ -205,5 +211,5 @@ waor.png : waor_embedded.grd
 	gmt pscoast -JM12 -R$(PNW_BASE_REGION) -O -Df -N1 -N2 -W >> waor.ps
 	convert -trim -density 300x300 -rotate 90 waor.ps waor.png
 
-waor_embedded.grd : ../$(OUTGRD)
+waor_embedded.grd : ../global_vs30.grd
 	gmt grdcut -R$(PNW_BASE_REGION) $< -G$@

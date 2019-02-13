@@ -1,15 +1,32 @@
-This directory creates a grid file and a weighted clipping mask suitable
-for inserting the California hybrid Vs30 map into the global Vs30 map.
-See the Makefile for specifics of the processing.
+The Makfile will create a grid file and a weighted clipping mask suitable for inserting the
+California Vs30 map into the global Vs30 map.  See the Makefile for
+specifics of the processing.
 
-To create the necessary files and insert them into the global map, run
-make in the Slope directory first, then here you can simply issue the command:
+Note, this Makefile sort of "cheats" the workflow for most coastal regions (Greece, Italy, etc.)
+and should not be used as a template for other coastal regions. This is because the shape of California 
+along the coast can be tightly bounded, so even though it DOES still smooth the coast outside of California, 
+it is negligible since it has to smooth the border between California and Oregon anyways (including at the triple junction
+of Cali, Oregon, and the Pacific). We just cut it off so the smoothing doesn't go any further up the Oregon coast.
 
-        % make
+To create the necessary files to display the new California Vs30 map, simply type
 
-Following this run, proceed to the other regional directories listed in 
-../Makefile and follow the directions there.
+	% make
 
-Note that it is easier to achieve these results from the Makefile in this directory's 
-parent directory by simply running 'make' there.
+in this directory. To insert the new California map into a global Vs30 map,
+return to the top level directory and type
 
+	% make
+
+To create the plots, type
+
+	% make plots
+
+To clean things up, type
+
+	% make clean
+
+Or just
+
+	% make clean_plots
+
+to only remove the plots.

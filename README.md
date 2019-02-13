@@ -19,23 +19,16 @@ based Vs30 model, and then inserts regional maps into the global
 map where they are available.
 
 It starts running in the Slope directory, where it makes a file
-called "global_vs30.grd" and copies it to the top-level directory.
-It then runs in each of the regional sub-directories (currently,
-California, PNW, Utah, Japan, Taiwan, New Zealand, and Australia) each of which
- inserts its regional map into the global map, tagging it with a
- "_<region>" extension (e.g., California uses the "ca" extension, so
- if it were to operate on the "global_vs30.grd" file, it would create
- a file called "global_vs30_ca.grd". The top-level file is then removed,
-and the region's custom file is copied into its place. The
-next region then operates on that file (e.g., PNW, whose extension
-is "waor" would act on "global_vs30_ca.grd" and create
-"global_vs30_ca_waor.grd".)
+that contains a global topographic slope-based Vs30 map.
+It then runs in each of the regional sub-directories (currently 
+Australia, California, Greece, Iran, Italy, Japan, New Zealand, PNW, 
+Taiwan, and Utah) each of which inserts its regional map 
+into the global map.
 
-In this way, each stage of the process is captured in "Slope"
-and the regional subdirectories, while the final product lives
-in the top-level directory. This approach should make it easy to
-add new regions, and to skip certain regions, without too much
-custom programming.
+Each stage of the process is captured in "Slope"
+and the regional subdirectories, while the final product, "global_vs30.grd" 
+lives in the top-level directory. This approach should make it easy to
+add new regions.
 
 
 PREREQUISITES AND CONFIGURATION
@@ -46,21 +39,21 @@ current search path. The required software is:
 
 + **CURL** -- (or curl) a utility to transfer data from a server via HTTP or
 other protocols; if it isn't on your system, you can install it with a
-package manager, or it can be had from various sources, but the main
+package manager, or it can be obtained from various sources, but the main
 one is http://curl.haxx.se.
 
 
 + **GMT/NetCDF** -- The Generic Mapping Tools package must be installed, and
 NetCDF with it. GMT can be downloaded from: http://gmt.soest.hawaii.edu/.
-The latest stable version -- 5.4.4 -- should be downloaded. **Note** that GMT version 
+The latest stable version -- 5.4.4 -- should be downloaded. **Note** GMT version 
 4 will no longer work. Make sure to install the full-resolution shoreline database.
 
 
 + The **GDAL (Geospatial Data Abstraction Library)** package must be available.
 You will need at least version 1.9 -- earlier versions, like 1.4, will not
 work. Additionally, the most recent version -- 2.3.0, is incompatible.
-You will need to set a path to the gdal binaries in Constants.mk.
-In particular, the programs gdal_rasterize and gdal_translate are used
+You will need to set a path to the gdal binaries in Constants.mk, so remember where
+you put it. In particular, the programs gdal_rasterize and gdal_translate are used
 herein. GDAL can be installed by most package managers, but they often
 have very old versions. The software can also be found at www.gdal.org.
 
@@ -95,19 +88,25 @@ MAKING THE MAPS
 ------------------------
 
 Once all of the proper software is installed, and the variables in
-Constants.mk are set, in the top-level directory you should just be able to do:
+Constants.mk are set, in the top-level directory of the repository
+you should just be able to do:
 
         % make
 
 And the process should proceed to make a global grid file with insert
-maps for California, PNW, Utah, etc. To remove one or more regions, see
+maps for Australia, California, Greece, Iran, Italy, Japan, NZ, PNW, 
+Taiwan, Utah, etc. To remove (or add) one or more regions, see
 the top-level Makefile and look at the instructions near the top.
 
-If you want to make plots, it's set up in the regional Makefiles. Doing:
+If you want to make plots, it's set up in the regional Makefiles. 
+Go into a regional directory and do:
 
         % make plots
 
-will generate a complete set. To get rid of the plots, do:
+to generate a complete set. These plots are sometimes limited (and vary from 
+region to region), or may not show the step you are curious about. It is 
+straightforward to add a new plot by copying the framework already there.
+To get rid of the plots, do:
 
         % make clean_plots
 
@@ -127,24 +126,27 @@ In the top-level you can also run:
         % make spotless
 
 which will run "make veryclean" in all the subdirectories and also remove
-the top level Vs30 file "global_vs30*.grd".
+the top level Vs30 file "global_vs30.grd".
 
 
 ADDING A REGION
 -----------------------
-To add a region, make a directory for it and add the directory to the
-lists near the top of the top-level Makefile. The copy the Makefile
-from one of the regions (California, PNW, or Utah) and modify as
-necessary. In particular, you can make your map in any way you want, so
-many of the steps in creating the the grids may be different or unnecessary.
-You may also insert your grid into the global grid however you want,
-but the program src/insert_grd is provided for that purpose. It takes as
-input a base grid file into which you want to insert your map, your grid,
-a landmask, and a weighted clipping mask.  The landmask and clipping mask
-should be identically sized and co-registered with your grid. All three must
-have the same resolution and co-register with the background grid, and must
-fit entirely within it. The clipping mask should be 1 (one) where your grid
-will replace the background grid, and 0 (zero) where the background grid is
+To add a region, make a directory for it and add the directory to the two
+lists near the top of the top-level Makefile. Then copy the Makefile
+from one of the other regions (ideally one geographically similar. i.e., if it is a 
+landlocked region, Utah might be best. Island - Australia or Taiwan. Regions with
+coastline - Greece or Italy) and modify as necessary. In particular, you 
+can make your map in any way you want, so many of the steps in creating the the 
+grids may be different or unnecessary. There are many "branching points" in making the maps, 
+and many small adjustments that can be made to correct for inconsistencies in the ways 
+different maps are created. You may also insert your grid into the global 
+grid however you want, but the program src/insert_grd is provided for that purpose. 
+It takes as input a base grid file into which you want to insert your map (in our case the 
+topographic slope grid), your new grid, and a weighted clipping mask (usually weights.grd). 
+The clipping mask should be identically sized and co-registered with your grid. Both the new
+grid and the weighted clipping mask must have the same resolution and co-register with the 
+background grid, and must fit entirely within it. The clipping mask should be 1 (one) where 
+your grid will completely replace the background grid, and 0 (zero) where the background grid is
 left untouched. Values between 1 and 0 will produce and output that is the
 weighted average of the two grids:
 
@@ -155,6 +157,22 @@ where w is the weight.
 See the file src/README and the source .c files for more information on
 insert_grd and the other programs available. In addition, the regional
 Makefiles (for California, PNW, and Utah) have examples of their use.
+
+
+AMPLIFICATION MAP
+=======================
+This is a new addition to the Vs30 repository. The Amplification map is created separately
+from all other regional / global Vs30 maps. It only requires "global_vs30.grd" exist in the top-level
+directory. The amplification map is created by first utilizing two methodologies for calculating 
+amplification values - Stewart et al. (2017) for stable cratonic regions, and 
+Seyhan and Stewart (2014) for active crustal regions. The two maps are calculated and then merged 
+together according to a simple polylgon grid file of their respective regions (modified from the 
+ShakeMap repository). However, to avoid a sharp discontinuity at the interface, the two regions are blended
+using a similar methodology to inserting regional maps into the global topographic-slope Vs30 map. 
+In this case, however, the "background" map is the flipped version of the active/stable amplification map. 
+Then, at the interface, the two are averaged (using the weight scheme described just above this section)
+so that it blends the two together at the interface. Presently, the values for a requested period must 
+be hard-coded from supplementary tables included in the publications listed in this section.
 
 
 ACKNOWLEGEMENTS
@@ -178,6 +196,17 @@ Observations with Geologic and Topographic Constraints." Presented at
 
 The Australia map is provided by A. A. McPherson and Trevor Allen of Geoscience 
 Australia under the Creative Commons Attribution 4.0 International Licence.
+
+The Italy map is provided by Alberto Michelini of the Istituto Nazionale di Geofisica e 
+Vulcanologia (INGV), and is developed in Michelini et al. (2008). 
+
+The Iran map is provided by Sadra Karimzadeh of the Tokyo Institute of Technology, and
+is developed in Karimzadeh et al. (2017). 
+
+The Greece map is provided by Kiriaki Konstantinidou of the Earthquake Planning and 
+Protection Organization (EPPO), and can be referenced at Stewart et al. (2014).
+
+The New Zealand map ...
 
 The getpar library was created by Robert W. Clayton of the California
 Institute of Technology, and later amended by several others (see

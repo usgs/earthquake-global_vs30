@@ -1,6 +1,7 @@
 #
-# Makefile for PNW Vs30 grid into the global+CA grid
+# Makefile for including Japan Vs30 grid into the global grid
 #
+
 include ~/.vs30/Constants.mk
 
 JP_XMIN = 128.0
@@ -20,7 +21,7 @@ clean : clean_plots
 	$(RM) japan.grd weights.grd shape/japan_$(RES)c.bil \
 		  shape/japan_$(RES)c.hdr shape/japan_$(RES)c.prj \
 		  shape/$(SHAPE_BASE).dbf shape/$(SHAPE_BASE).prj \
-		  shape/$(SHAPE_BASE).shp  shape/$(SHAPE_BASE).shx 
+		  shape/$(SHAPE_BASE).shp  shape/$(SHAPE_BASE).shx gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -29,27 +30,31 @@ clean_plots :
 veryclean : clean
 	$(RM) -rf shape
 
-#
+#################################################################
 # Make a weighted clipping mask; this is trivial in this case
 # because our region is entirely surrounded by water; the 
 # weights = 1 where we have Vs30, = 0 where we don't 
 #
+
 weights.grd : japan.grd 
 	gmt grdmath $< 0 GT = $@
 
-#
+#################################################################
 # Make the raster file into a GMT grd
 #
+
 japan.grd : shape/japan_$(RES)c.bil
 	gmt xyz2grd -R$(JP_REGION) -I$(RES)s -ZTLf $< -G$@
 #
 # Convert shape file into a raster file
 #
+
 shape/japan_$(RES)c.bil : shape/$(SHAPE_BASE).shp
 	$(GDAL_PATH)/gdal_rasterize -of EHdr -a AVS -init 0 -te $(JP_XMIN) $(JP_YMIN) $(JP_XMAX) $(JP_YMAX) -tr $(RES_DD) $(RES_DD) -ot Float32 -tap $< $@
 #
 # Get the grid from the source and unpack it 
 #
+
 shape/$(SHAPE_BASE).shp : shape/$(SHAPE_BASE).tar.gz
 	(cd shape && tar xvf $(SHAPE_BASE).tar.gz && touch -c $(SHAPE_BASE).shp)
 
@@ -83,7 +88,7 @@ japan_region.png : japan_region.grd
 	gmt pscoast -JM12 -R$(JP_REGION) -O -Df -N1 -N2 -W >> japan_region.ps
 	convert -trim -density 300x300 -rotate 90 japan_region.ps japan_region.png
 
-japan_region.grd : ../$(OUTGRD)
+japan_region.grd : ../global_vs30.grd
 	gmt grdcut -R$(JP_REGION) $< -G$@
 
 # Plot the raw geology map using its own scale.

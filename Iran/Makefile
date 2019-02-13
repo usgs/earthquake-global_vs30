@@ -1,9 +1,12 @@
 #
 # Makefile for inserting Iran Vs30 grid into the global mosaic.
 #
-
-#
-# Include the boilerplate
+# This workflow includes resolving particular "problem regions," typically 
+# caused by differences in the way the map was made compared to the way
+# gmt's grdlandmask command works. In this case, the authors of the map 
+# gave two small lakes NaN values - consistent with their other use of NaN
+# for all water (oceans, lakes, etc.). However, grdlandmask does not recognize
+# these two lakes, so we manually fix it. That workflow is described below.
 #
 
 include ~/.vs30/Constants.mk
@@ -51,7 +54,7 @@ clean_plots :
 
 veryclean : clean
 
-#
+#################################################################################
 # weights.grd is plotted and explained:
 #
 # We have values that range from 0 to 1. Areas outside the border will have 
@@ -64,8 +67,9 @@ veryclean : clean
 weights.grd : final_mask.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
-#
-# final_mask.grd is plotted.
+###############################################################################
+# final_mask.grd is plotted. For more detail on these intermediate plots, 
+# please see the Greece or Italy makefiles.
 #
 
 final_mask.grd : new_mask_mul_landmask_add_a.grd
@@ -95,13 +99,7 @@ clipmask.grd : landmask_water.grd ir_non_zero.grd
 ir_non_zero.grd : iran.grd
 	gmt grdmath $< 0 GT 0 AND = $@
 
-#
-# For more details on the steps that follow, please view the Italy Makefile
-# to see the same workflow and more plots of the intermediate steps.
-#
-########################################################################
-
-#
+##############################################################################
 # Create the grid that will be inserted into the global mosaic. The final 
 # grid will be one in which water is 0, dry land outside Iran is 0, and dry 
 # land inside Iran has the new Vs30 values.
@@ -133,7 +131,7 @@ landmask_water.grd :
 landmask_land.grd :
 	gmt grdlandmask -V -R$(IR_EXT_REGION) -I$(RES)s/$(RES)s -G$@ -Df -N0/1/0/1/0
 
-#
+########################################################################################
 # Paste a 1-degree chunk of NaN's to the top, bottom, east, and west sides of the map:
 #
 
@@ -161,7 +159,7 @@ west.grd :
 east.grd :
 	gmt grdmath -R$(IR_EAST)/$(IR_EXT_EAST)/$(IR_EXT_SOUTH)/$(IR_EXT_NORTH) -I$(RES)s/$(RES)s 0 0 NAN = $@
 
-#
+####################################################################################
 # Rescale to proper resolution. If the output is coarser than the
 # input (7.5c), then we filter with a 3x3 gaussian filter; if the
 # output is finer than the input, we resample with bilinear interpolation
@@ -175,7 +173,7 @@ vs30_$(RES)c.grd : Iran_Hybrid_Vs30.grd
 	gmt grdsample -nl+t0.1 -I$(RES)s/$(RES)s -R$(IR_WEST)/$(IR_EAST)/$(IR_SOUTH)/$(IR_NORTH) -T -fg $< -G$@
 endif
 
-#
+#####################################################
 # Check for the file.
 # 
 
@@ -186,7 +184,6 @@ Iran_Hybrid_Vs30.grd :
 	$(MAKE) -C ../src smooth
 
 ###################################################
-#
 # Plots
 #
 
@@ -200,7 +197,7 @@ plot_clip_mask : final_mask.png
 
 plot_weights : weights.png
 
-plot_final_map_me : me.png
+plot_final_map_me : me_vs30.png
 
 # Plot original basemap
 
@@ -243,7 +240,7 @@ weights.png : weights.grd
  
 # Plot the new Vs30 map in a cut out map of the western US
  
-me.png : me_vs30.grd
+me_vs30.png : me_vs30.grd
 	gmt grdimage me_vs30.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > me_vs30.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> me_vs30.ps
 	gmt pscoast -JM12 -R$(ME_REGION) -Df -O -N1 -N2 -W >> me_vs30.ps

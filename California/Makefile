@@ -1,9 +1,10 @@
 #
 # Makefile for California Vs30 grid
 #
-
-#
-# Include the boilerplate
+# Please read the note in the README and do not use this as a template for other regions with coastline.
+# This DOES, however, fix a unique problem where lakes were given a unique value different 
+# to the value of oceans. It also fixes another problem with SF Bay. The solutions could be useful
+# for other maps, but it's a pretty unique problem I'd guess. 
 #
 
 include ~/.vs30/Constants.mk
@@ -35,7 +36,7 @@ plots : plot_original_map plot_base_map plot_vs30_landmask plot_clip_mask plot_s
 clean : clean_plots
 	$(RM) vs30_*c.grd vs30_*c_ext.grd vs30_*c_top_bot.grd vs30_*c_top.grd landmask.grd \
               mask.grd mask_smooth.grd top.grd east.grd bot.grd \
-              weights.grd california.grd lakes_600.grd california_SF_bay_1200.grd
+              weights.grd california.grd lakes_600.grd california_SF_bay_1200.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -43,8 +44,7 @@ clean_plots :
 
 veryclean : clean
 
-#################################
-#
+#################################################################################
 # We have values that range from 0 to 1. Areas outside the border will have 
 # values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, 
 # inside ranging from 0 to 0.5), multiply by 2 (making outside still < 0, 
@@ -55,7 +55,7 @@ veryclean : clean
 weights.grd : mask_smooth.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
-#
+#################################################################################
 # Smooth the mask. This will blur the border, but we'll fix that in a 
 # minute. We make the filter twice the width and height that we want (for the
 # same reason). Let's try a 0.35 degree transition, which means a 0.7 degree 
@@ -74,7 +74,7 @@ mask_smooth.grd : mask.grd ../src/smooth
 mask.grd : california.grd
 	gmt grdmath -fg $< 0 GT = $@
 
-#
+################################################################################################################################3
 # The CA Vs30 is 0 in the oceans and outside CA, and -1 in lakes. First make all -1 vales 600. 
 # Next make a landmask where oceans=1, dry = 0. Then multiply by 600 to set all the oceans to 600 and 
 # do an ADD with the new Vs30 grid -- that will leave wet (oceans and lakes) = 600, dry areas inside CA with the new Vs30, 
@@ -116,7 +116,7 @@ bot.grd :
 east.grd :
 	gmt grdmath -R$(CA_EAST)/$(CA_EXT_EAST)/$(CA_EXT_SOUTH)/$(CA_EXT_NORTH) -I$(RES)s/$(RES)s 0 1 NAN = $@
 
-#
+#################################################################################
 # Rescale to proper resolution. If the output is coarser than the
 # input (7.5c), then we filter with a 3x3 gaussian filter; if the
 # output is finer than the input, we resample with bilinear interpolation
@@ -130,7 +130,7 @@ vs30_$(RES)c.grd : California_Vs30_7p5c.grd
 	gmt grdsample -nl+t0.1 -I$(RES)s/$(RES)s -R$(CA_WEST)/$(CA_EAST)/$(CA_SOUTH)/$(CA_NORTH) -fg $< -G$@
 endif
 
-#
+################################################################################3
 # Check for the file.
 # 
 
@@ -141,7 +141,6 @@ California_Vs30_7p5c.grd :
 	$(MAKE) -C ../src smooth
 
 ###################################################
-#
 # Plots
 #
 

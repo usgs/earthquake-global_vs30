@@ -1,12 +1,12 @@
 The Makfile will create a grid file and a weighted clipping mask suitable for inserting the
-PNW Vs30 map into the global Vs30 map.  See the Makefile for
+New Zealand Vs30 map into the global Vs30 map.  See the Makefile for
 specifics of the processing.
 
-To create the necessary files to display the new PNW Vs30 map, simply type
+To create the necessary files to display the new New Zealand Vs30 map, simply type
 
 	% make
 
-in this directory. To insert the new PNW map into a global Vs30 map,
+in this directory. To insert the new New Zealand map into a global Vs30 map,
 return to the top level directory and type
 
 	% make

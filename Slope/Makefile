@@ -1,6 +1,7 @@
 #
 # Makefile to generate a global slope-based Vs30 file
 #
+
 include ~/.vs30/Constants.mk
 
 .PHONY: all clean veryclean
@@ -14,7 +15,7 @@ global_vs30.grd : global_grad.grd global_landmask.grd cratons_smooth.grd \
 clean : clean_plots
 	$(RM) cratons.bil cratons.prj cratons.hdr cratons.grd cratons_smooth.grd \
               global_landmask.grd elev/gmted_global.bil gmted_global.grd \
-              global_grad.grd cratons_pixel.grd
+              global_grad.grd cratons_pixel.grd gmt.history
 
 clean_plots:
 	$(RM) *.ps *.png

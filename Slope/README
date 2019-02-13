@@ -1,9 +1,5 @@
-To make the global slope-based Vs30 map, edit ../Constants.mk then 
-simply run make:
+To make the global slope-based Vs30 map, simply run make:
 
 	% make
 
-To insert custom maps, follow the instructions in the California 
-directory, followed by the other regional directories listed in 
-../Makefile. All of this is easier to achieve by running make in 
-this directory's parent directory.
+in this directory. 

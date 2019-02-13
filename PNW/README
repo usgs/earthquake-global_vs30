@@ -1,12 +1,26 @@
-This directory creates a grid file and a weighted clipping mask suitable
-for inserting the PNW geology-based Vs30 map into the global Vs30 map.
-See the Makefile for specifics of the processing.
+The Makfile will create a grid file and a weighted clipping mask suitable for inserting the
+PNW Vs30 map into the global Vs30 map.  See the Makefile for
+specifics of the processing.
 
-To create the necessary files and insert them into the global map, run
-make in the Slope directory first, then in the California directory,
-then here you can simply issue the command:
+To create the necessary files to display the new PNW Vs30 map, simply type
 
 	% make
 
-Note that it is easier to achieve these results from the Makefile in
-this directory's parent directory.
+in this directory. To insert the new PNW map into a global Vs30 map,
+return to the top level directory and type
+
+	% make
+
+To create the plots, type
+
+	% make plots
+
+To clean things up, type
+
+	% make clean
+
+Or just
+
+	% make clean_plots
+
+to only remove the plots.

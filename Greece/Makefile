@@ -1,6 +1,13 @@
 #
 # Makefile for inserting Greece Vs30 grid into the global mosaic.
 #
+# This is the most comprehensive Makefile (along with Italy) for understanding the 
+# workflow used when adding regions with coastlines. The process is so extensive 
+# because we do not want the coast to be smoothed, either inside or outside
+# of the new region. BUT we do want the region to be smoothed into the 
+# rest of the background map. So, we have to creatively smooth only where
+# new Vs30 land values touch old Vs30 land, but not where either touches water.
+# 
 
 include ~/.vs30/Constants.mk
 
@@ -11,7 +18,7 @@ GR_EAST = 30
 
 GR_BASE_REGION = $(GR_WEST)/$(GR_EAST)/$(GR_SOUTH)/$(GR_NORTH)
 
-BIG_EUR_REGION = 4/21/34/50
+BIG_EUR_REGION = 14/34/30/48
 
 .PHONY: all plots clean clean_plots veryclean
 
@@ -33,7 +40,7 @@ clean_plots :
 
 veryclean : clean
 
-#
+###############################################################################
 # We have values that range from 0 to 1. Areas outside the border will have 
 # values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, 
 # inside ranging from 0 to 0.5), multiply by 2 (making outside still < 0, 
@@ -47,6 +54,11 @@ veryclean : clean
 
 weights.grd : final_mask.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
+
+##############################################################################
+# In this section, the issue described at the top of the Makefile is fixed.
+# The workflow is difficult to describe in writing, so a note is made
+# each time a plot is created at a different stage in the workflow.
 
 #
 # final_mask.grd is plotted.
@@ -95,7 +107,7 @@ clipmask.grd : landmask_water.grd gr_non_zero.grd
 gr_non_zero.grd : gr_$(RES)c.grd
 	gmt grdmath $< 0 GT 0 AND = $@
 
-#
+####################################################################################################
 # Now make the actual grid that will be inserted. Water is 600 and dry land not in Greece is 0.
 #
 # There is a small "buffer zone" around some coastal areas, where NaN values were assigned to
@@ -115,7 +127,7 @@ landmask_land.grd : gr_$(RES)c.grd
 landmask_water.grd : gr_$(RES)c.grd
 	gmt grdlandmask -V -N1/0/1/0/1 -R$(GR_BASE_REGION) -I$(RES)s -G$@ -Df
 
-#
+##############################################################################################
 # Rescale to 30-second resolution and shift the map to make it co-register
 # with the global grid. In this case the grid is already 30-second resolution
 # so this doesn't really do anything.

@@ -1,8 +1,6 @@
 #
 # Makefile for California Vs30 grid
 #
-
-#
 # Include the boilerplate
 #
 
@@ -35,7 +33,7 @@ plots : plot_original_map plot_base_map plot_vs30_landmask plot_clip_mask plot_s
 clean : clean_plots
 	$(RM) vs30_*c.grd vs30_*c_ext.grd vs30_*c_top_bot.grd vs30_*c_top.grd landmask.grd \
               mask.grd mask_smooth.grd top.grd east.grd bot.grd \
-              weights.grd california.grd lakes_600.grd california_SF_bay_1200.grd
+              weights.grd california.grd lakes_600.grd california_SF_bay_1200.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png

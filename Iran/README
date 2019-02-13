@@ -2,6 +2,17 @@ The Makfile will create a grid file and a weighted clipping mask suitable for in
 Iran Vs30 map into the global Vs30 map.  See the Makefile for
 specifics of the processing.
 
+This workflow includes resolving particular "problem regions," typically
+caused by differences in the way the map was made compared to the way
+gmt's grdlandmask command works. In this case, the authors of the map
+gave two small lakes NaN values - consistent with their other use of NaN
+for all water (oceans, lakes, etc.). However, grdlandmask does not recognize
+these two lakes, so we manually fix it. That workflow is described below.
+
+Please note this also uses the "coastline" methodology since some small parts
+of Iran touch the coast. If that is the case for your region, you will need
+to do the same for accurate values near oceans. 
+
 To create the necessary files to display the new Iran Vs30 map, simply type
 
 	% make
@@ -11,7 +22,8 @@ return to the top level directory and type
 
 	% make
 
-Crucial to understanding the workflow for coastal regions by viewing the intermediate steps, type
+Plots here are not as detailed as for Greece or Italy (as in, they don't show the 
+intermediate steps like those do). Regardless, to show the plots type
 
 	% make plots
 

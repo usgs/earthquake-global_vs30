@@ -1,7 +1,7 @@
 #
 # Project-wide constants for Makefiles
 #
-# Edit this file as needed to produce the maps you want
+# Edit this file as needed to produce the maps you want.
 #
 
 #
@@ -88,10 +88,15 @@ BIG_WUS_REGION = -130.0/-107.0/31.0/50.0
 
 #
 # cpt files needed for plotting; these are relative to the regional
-# map directories, not this top level directory
+# map directories, not the top level directory. Several new cpts have been
+# added to encapsulate the higher Vs30 values in hybrid maps. Additionally, 
+# newer cpts are monotonic, to allow for easier debugging.
 #
 VS30_CPT = ../Misc/usa.cpt
 WEIGHTS_CPT = ../Misc/weights.cpt
+NEW_WEIGHTS_CPT = ../Misc/new_weights.cpt
+NEW_VS30_CPT = ../Misc/new_vs30.cpt
+AMP_CPT = ../Misc/amp_cpt.cpt
 
 #
 # The velocity assigned to water-covered areas

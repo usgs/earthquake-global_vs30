@@ -2,6 +2,9 @@ The Makfile will create a grid file and a weighted clipping mask suitable for in
 Australia Vs30 map into the global Vs30 map.  See the Makefile for 
 specifics of the processing.
 
+Note this is a good example of how to create a Makefile when your regional map is 
+just an island. 
+
 To create the necessary files to display the new Australia Vs30 map, simply type
 
 	% make

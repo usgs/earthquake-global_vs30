@@ -20,7 +20,7 @@ all : aus.grd weights.grd
 plots :  plot_raw_map plot_weights plot_final_map
 
 clean : clean_plots
-	$(RM) aus.grd weights.grd aus_*c.grd
+	$(RM) aus.grd weights.grd aus_*c.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -66,8 +66,8 @@ plot_raw_map : aus_raw.png
 # Plot the weights:
  
 weights.png : weights.grd
-	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba10f5eWSn -K > weights.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
+	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -JM12 -Ba10f5eWSn -K > weights.ps
+	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps
 	gmt pscoast -JM12 -R$(AUS_REGION) -Df -O -N1 -N2 -W >> weights.ps
 	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
  
@@ -85,7 +85,7 @@ aus.png : aus_region.grd
 	gmt pscoast -JM12 -R$(AUS_REG) -O -Df -N1 -N2 -W >> aus_region.ps
 	convert -trim -density 300x300 -rotate 90 aus_region.ps aus_region.png
 
-aus_region.grd : ../$(OUTGRD)
+aus_region.grd : ../global_vs30.grd
 	gmt grdcut -R$(AUS_REG) $< -G$@
 
 # Plot the raw geology map

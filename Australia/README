@@ -2,12 +2,25 @@ The Makfile will create a grid file and a weighted clipping mask suitable for in
 Australia Vs30 map into the global Vs30 map.  See the Makefile for 
 specifics of the processing.
 
-To create the necessary files and insert them into the global map, run
-make in the Slope directory first, then in the other directories that 
-you want included in the map, and then here you can simply issue the 
-command:
+To create the necessary files to display the new Australia Vs30 map, simply type
 
 	% make
 
-Note that it is easier to achieve these results from the Makefile in
-this directory's parent directory.
+in this directory. To insert the new Australia map into a global Vs30 map, 
+return to the top level directory and type 
+
+	% make 
+
+To create the plots, type 
+
+	% make plots
+
+To clean things up, type 
+
+	% make clean
+
+Or just 
+
+	% make clean_plots
+
+to only remove the plots. 

@@ -1,19 +1,30 @@
-This directory creates a grid file and a weighted clipping mask suitable
-for inserting the Italy Vs30 map into the global Vs30 map.
-See the Makefile for specifics of the processing.
+The Makfile will create a grid file and a weighted clipping mask suitable for inserting the
+Italy Vs30 map into the global Vs30 map. Perhaps just behind Greece, is a good Makefile to look at to understand
+the workflow for regions with coastlines. This one is a bit more complicated than
+Greece because it "fixes" (similar to the lakes in the Iran map) two problem spots.
+One spot is Venice, where there is a discrepancy between grdlandmask and the way
+the authors created the map (explained below), and the other is a small, square
+region in Sardinia where the authors did not fill in Vs30 values.
 
-To create the necessary files and insert them into the global map, run
-make in the Slope directory first, in the top level directory simply issue the command:
+To create the necessary files to display the new Italy Vs30 map, simply type
 
-        % make
+	% make
 
-To create only the Italy Vs30 map and not insert it into the global grid, 
-simply type
+in this directory. To insert the new Italy map into a global Vs30 map,
+return to the top level directory and type
 
-        % make 
+	% make
 
-in this directory. Also, type
+Similar to Greece, to understand the workflow for coastal regions by viewing the intermediate steps, type
 
-        % make plots
+	% make plots
 
-to create and view the intermediate steps. 
+To clean things up, type
+
+	% make clean
+
+Or just
+
+	% make clean_plots
+
+to only remove the plots.

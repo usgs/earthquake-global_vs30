@@ -1,6 +1,13 @@
 #
 # Makefile for inserting Italy Vs30 grid into the global mosaic.
 #
+# This is, perhaps just behind Greece, is a good Makefile to look at to understand 
+# the workflow for regions with coastlines. This one is a bit more complicated than
+# Greece because it "fixes" (similar to the lakes in the Iran map) two problem spots. 
+# One spot is Venice, where there is a discrepancy between grdlandmask and the way 
+# the authors created the map (explained below), and the other is a small, square 
+# region in Sardinia where the authors did not fill in Vs30 values. 
+#
 
 include ~/.vs30/Constants.mk
 
@@ -23,15 +30,15 @@ IT_ISLAND_REGION = 8.8/9.5/40.5/41
 
 .PHONY: all plots clean clean_plots veryclean
 
-all : new_italy.grd final_mask.grd weights.grd
+all : new_italy.grd weights.grd
 
 plots : plot_base_map plot_final_mask plot_weights plot_new_italy plot_raw_map \
         plot_it_non_zero_smooth plot_mask_a plot_new_mask plot_new_mask_mul plot_final_map_eur
 
 clean : clean_plots
 	$(RM) it_$(RES)c.grd north.grd final_mask.grd it_non_zero* *mask* \
-              it_ext.grd weights.grd italy.grd gmt.history \
-              it_ven_mask.grd new_italy.grd new_ven.grd
+	it_ext.grd weights.grd italy.grd gmt.history \
+	it_ven_mask.grd new_italy.grd new_ven.grd
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -39,7 +46,7 @@ clean_plots :
 
 veryclean : clean
 
-#
+######################################################################################
 # weights.grd is plotted and explained: We have values that range from 0 to 1. 
 # Areas outside the border will have values < 0.5, and inside > 0.5. 
 # So we subtract 0.5 (making outside < 0, inside ranging 
@@ -51,7 +58,7 @@ veryclean : clean
 weights.grd : final_mask.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
-#
+######################################################################################
 # final_mask.grd is plotted.
 #
 
@@ -103,7 +110,7 @@ clipmask.grd : landmask_water.grd it_non_zero.grd
 it_non_zero.grd : new_italy.grd
 	gmt grdmath $< 603 NEQ = $@
 
-#
+#####################################################################################################
 # Create a mask over the small square of missing/603 nodes on the island west of Italy.
 # Replace any values inside this small masked region which are GT 600 with 1000.
 # Insert back into the larger Italy grid. This grid can now be inserted into the global mosaic.
@@ -118,7 +125,7 @@ island_landmask.grd : it_island_mask.grd landmask.grd new_ven.grd
 it_island_mask.grd : it_island_coords.xy
 	gmt grdmask it_island_coords.xy -I$(RES)s -R$(IT_EXT_REGION) -N0/0/1 -fg -G$@
 
-#
+######################################################################################################
 # Insert the fixed ven region back into the larger Italy grid.
 #
 
@@ -146,7 +153,7 @@ ven_landmask.grd : it_ven_mask.grd landmask.grd it_ext.grd
 it_ven_mask.grd : it_ven_coords.xy
 	gmt grdmask it_ven_coords.xy -I$(RES)s -R$(IT_EXT_REGION) -N0/0/1 -fg -G$@
 
-#
+###########################################################################################
 # Create two landmasks - one which has value 1 for land and 0 for water, and one that
 # 1 for water and 0 for land.
 #
@@ -157,7 +164,7 @@ landmask_water.grd :
 landmask.grd :
 	gmt grdlandmask -V -R$(IT_EXT_REGION) -I$(RES)s -G$@ -Df -N0/1/0/1/0
 
-#
+##############################################################################################
 # We're going to paste a 1 degree chunk of nodes on top of the grid to help
 # with smoothing later. Value for each node will be 603, consistent with the
 # original grid.
@@ -169,7 +176,7 @@ it_ext.grd : it_$(RES)c.grd north.grd
 north.grd :
 	gmt grdmath -R$(IT_WEST)/$(IT_EAST)/$(IT_NORTH)/$(IT_NORTH_EXT) -I$(RES)s/$(RES)s 603 = $@
 
-#
+###########################################################################################
 # Start by rescaling to 30-second resolution and shift the map to make it co-register
 # with the global grid.
 #
@@ -181,7 +188,7 @@ italygeol60s_vsgrid.grd :
 	echo "Italy grid file italygeol60s_vsgrid.grd must be supplied."
 
 ../src/smooth :
-        $(MAKE) -C ../src smooth
+	$(MAKE) -C ../src smooth
 
 #################################
 #

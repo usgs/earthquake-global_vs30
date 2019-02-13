@@ -2,6 +2,12 @@ The Makfile will create a grid file and a weighted clipping mask suitable for in
 California Vs30 map into the global Vs30 map.  See the Makefile for
 specifics of the processing.
 
+Note, this Makefile sort of "cheats" the workflow for most coastal regions (Greece, Italy, etc.)
+and should not be used as a template for other coastal regions. This is because the shape of California 
+along the coast can be tightly bounded, so even though it DOES still smooth the coast outside of California, 
+it is negligible since it has to smooth the border between California and Oregon anyways (including at the triple junction
+of Cali, Oregon, and the Pacific). We just cut it off so the smoothing doesn't go any further up the Oregon coast.
+
 To create the necessary files to display the new California Vs30 map, simply type
 
 	% make

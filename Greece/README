@@ -2,6 +2,13 @@ The Makfile will create a grid file and a weighted clipping mask suitable for in
 Greece Vs30 map into the global Vs30 map.  See the Makefile for
 specifics of the processing.
 
+This is the most comprehensive Makefile (along with Italy) for understanding the
+workflow used when adding regions with coastlines. The process is so extensive
+because we do not want the coast to be smoothed, either inside or outside
+of the new region. BUT we do want the region to be smoothed into the
+rest of the background map. So, we have to creatively smooth only where
+new Vs30 land values touch old Vs30 land values, but not where either touches water.
+
 To create the necessary files to display the new Greece Vs30 map, simply type
 
 	% make

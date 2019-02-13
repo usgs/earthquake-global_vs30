@@ -143,7 +143,6 @@ Hellas-geology_18-30_34-43_30s.grd :
 	$(MAKE) -C ../src smooth
 
 #################################
-#
 # Plots
 #
 

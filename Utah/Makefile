@@ -1,6 +1,11 @@
 #
 # Makefile for Utah Vs30 grid into the global+regional grid
 #
+# Note this is a good example for adding a region that is completely landlocked. 
+# The complicated workflow for not smoothing coastlines is not needed. The only 
+# thing we add here is a "buffer zone" around the region, which helps with smoothing. 
+#
+
 include ~/.vs30/Constants.mk
 
 UTAH_BASE_REGION = -114.2/-108.9/36.8/42.4
@@ -15,7 +20,7 @@ plots : plot_base_map plot_clip_mask plot_smooth_clip_mask plot_weights \
 
 clean : clean_plots
 	$(RM) ut_$(RES)c.grd north.grd south.grd east.grd west.grd \
-              ut_ext.grd mask.grd mask_smooth.grd weights.grd 
+              ut_ext.grd mask.grd mask_smooth.grd weights.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -23,29 +28,32 @@ clean_plots :
 
 veryclean : clean
 
-#
+##################################################################################
 # We have values that range from 0 to 1. Areas outside the border will have 
 # values < 0.5, and inside > 0.5. So we subtract 0.5 (making outside < 0, 
 # inside ranging from 0 to 0.5), multiply by 2 (making outside still < 0, 
 # inside ranging from 0 to 1.0), and then keep only positive values (making 
 # outside = 0, inside ranging from 0 to 1). 
 #
+
 weights.grd : mask_smooth.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
-#
+#################################################################################
 # Smooth the mask. This will blur the border, but we'll fix that in a 
 # minute. We make the filter twice the width and height that we want (for the
 # same reason). We're using a 0.35 degree transition, which means a 0.7 degree 
 # filter, which is 84 grid points, but we want an odd number. That means 
 # fx = fy = 85:
 #
+
 mask_smooth.grd : mask.grd ../src/smooth 
 	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
 #
 # Make a clipping mask = 1 where we have Vs30, = 0 where we don't 
 #
+
 mask.grd : ut_ext.grd 
 	gmt grdmath $< 0 GT = $@
 
@@ -54,6 +62,7 @@ mask.grd : ut_ext.grd
 # things greatly. We paste a 0.5-degess chunk of zeroes all around so we
 # have room to do our smoothing.
 #
+
 ut_ext.grd : ut_$(RES)c.grd north.grd south.grd west.grd east.grd
 	gmt grdpaste ut_$(RES)c.grd north.grd -Gtmp.grd
 	gmt grdpaste tmp.grd south.grd -Gut_ext.grd
@@ -73,10 +82,11 @@ west.grd :
 east.grd :
 	gmt grdmath -R-108.9/-108.2/36.3/42.9 -I$(RES)s 0 = $@
 
-#
+##################################################################################
 # Rescale to 30-second resolution and shift the map to make it co-register
 # with the global grid.
 #
+
 ut_$(RES)c.grd : utah6_geology_60s.grd
 	gmt grdsample -nl+t0.1 -I$(RES)s -fg -R$(UTAH_BASE_REGION) $< -G$@
 
@@ -84,9 +94,9 @@ utah6_geology_60s.grd :
 	echo "Utah grid file utah6_geology_60s.grd must be supplied."
 
 #################################
-#
 # Plots
 #
+
 plot_base_map : base.png
 
 plot_clip_mask : clipmask.png
@@ -139,7 +149,7 @@ wus.png : wus_vs30.grd
 	gmt pscoast -JM12 -R$(BIG_WUS_REGION) -O -Df -N1 -N2 -W >> wus.ps
 	convert -trim -density 300x300 -rotate 90 wus.ps wus.png
 
-wus_vs30.grd : ../$(OUTGRD)
+wus_vs30.grd : ../global_vs30.grd
 	gmt grdcut -R$(BIG_WUS_REGION) $< -G$@
 
 # Plot the raw geology map using its own scale.

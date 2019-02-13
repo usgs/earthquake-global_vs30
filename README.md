@@ -159,6 +159,22 @@ insert_grd and the other programs available. In addition, the regional
 Makefiles (for California, PNW, and Utah) have examples of their use.
 
 
+AMPLIFICATION MAP
+=======================
+This is a new addition to the Vs30 repository. The Amplification map is created separately
+from all other regional / global Vs30 maps. It only requires "global_vs30.grd" exist in the top-level
+directory. The amplification map is created by first utilizing two methodologies for calculating 
+amplification values - Stewart et al. (2017) for stable cratonic regions, and 
+Seyhan and Stewart (2014) for active crustal regions. The two maps are calculated and then merged 
+together according to a simple polylgon grid file of their respective regions (modified from the 
+ShakeMap repository). However, to avoid a sharp discontinuity at the interface, the two regions are blended
+using a similar methodology to inserting regional maps into the global topographic-slope Vs30 map. 
+In this case, however, the "background" map is the flipped version of the active/stable amplification map. 
+Then, at the interface, the two are averaged (using the weight scheme described just above this section)
+so that it blends the two together at the interface. Presently, the values for a requested period must 
+be hard-coded from supplementary tables included in the publications listed in this section.
+
+
 ACKNOWLEGEMENTS
 ---------------
 The California map was provided by Eric Thompson and based on the map

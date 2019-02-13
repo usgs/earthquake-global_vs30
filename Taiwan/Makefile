@@ -1,6 +1,7 @@
 #
 # Makefile for Taiwan Vs30 grid into the global+regional grid
 #
+
 include ~/.vs30/Constants.mk
 
 TW_XMIN = 119.0
@@ -18,7 +19,7 @@ all ::taiwan.grd weights.grd
 plots :  plot_raw_map plot_weights plot_final_map
 
 clean : clean_plots
-	$(RM) taiwan.grd weights.grd tw_*c.grd
+	$(RM) taiwan.grd weights.grd tw_*c.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -27,17 +28,19 @@ clean_plots :
 veryclean : clean
 	$(RM) global_vs30*_$(MYEXT).grd
 
-#
+###############################################################
 # Make a weighted clipping mask; this is trivial in this case
 # because our region is entirely surrounded by water; the 
 # weights = 1 where we have Vs30, = 0 where we don't 
 #
+
 weights.grd : tw_$(RES)c.grd
 	gmt grdmath $< 0 AND 0 GT = $@
 
-#
+###############################################################
 # Make the insert map, set NaNs to the water velocity
 #
+
 taiwan.grd : tw_$(RES)c.grd
 	gmt grdmath $< $(WATER) AND = $@
 
@@ -56,6 +59,7 @@ $(TW_GRD_FILE) :
 #
 # Plots
 #
+
 plot_weights : weights.png
 
 plot_final_map : taiwan.png
@@ -84,7 +88,7 @@ taiwan.png : taiwan_region.grd
 	gmt pscoast -JM12 -R$(TW_REG) -O -Df -N1 -N2 -W >> taiwan_region.ps
 	convert -trim -density 300x300 -rotate 90 taiwan_region.ps taiwan_region.png
 
-taiwan_region.grd : ../$(OUTGRD)
+taiwan_region.grd : ../global_vs30.grd
 	gmt grdcut -R$(TW_REG) $< -G$@
 
 # Plot the raw geology map

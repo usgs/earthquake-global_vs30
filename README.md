@@ -169,8 +169,8 @@ Seyhan and Stewart (2014) for active crustal regions. The two maps are calculate
 together according to a simple polylgon grid file of their respective regions (modified from the 
 ShakeMap repository). However, to avoid a sharp discontinuity at the interface, the two regions are blended
 using a similar methodology to inserting regional maps into the global topographic-slope Vs30 map. 
-In this case, however, the "background" map is the flipped version of the active/stable amplification map. 
-Then, at the interface, the two are averaged (using the weight scheme described just above this section)
+In this case, however, the "background" map is the active crustal amplification map. 
+Then, the two are averaged (using the weight scheme described just above this section)
 so that it blends the two together at the interface. Presently, the values for a requested period must 
 be hard-coded from supplementary tables included in the publications listed in this section.
 

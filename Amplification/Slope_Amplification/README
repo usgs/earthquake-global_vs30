@@ -1,24 +1,26 @@
 This directory contains the Makefile to create an amplification map
-using Vs30 values from the global grid. This is not included in the top-level
+using Vs30 values from the slope-based global grid. This is not included in the top-level
 Makefile, so it can only be made (and cleaned) here. Further description can be
 found in the top level README.md file. Current runtime on a standard 
-workstation is approximately 25 minutes.
+workstation is approximately 25 minutes. This is basically the same script
+as the new hybrid Amplification map, but it corrects the path errors to
+read from the Slope directory, which contains the slope-based Vs30 map.
 
-First, build the global grid by typing 
-
-	% make
-
-in the top level directory. Then, switch into this directory (Amplification) and type
+First, build the global slope-based grid by typing 
 
 	% make
 
-to create the amplification map.
+in the top level directory. Then, switch into this directory (Amplification/Slope_Amplification) and type
+
+	% make
+
+to create the slope-based amplification map.
 
 To create the plots, type
 
 	% make plots
 
-To erase the amplification map and the plots, type 
+To erase the slope-based amplification map and the plots, type 
 
 	% make clean
 

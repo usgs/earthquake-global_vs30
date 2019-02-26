@@ -1,0 +1,27 @@
+This directory contains the Makefile to create a ratio map
+using Vs30 values from the hybrid and slope-based global grids. 
+This is not included in the top-level Makefile, so it can only be made (and cleaned) 
+here. Further description can be found in the top level README.md file.
+
+First, build the global slope-based and hybrid grids by typing 
+
+	% make
+
+in the top level directory. Then, switch into this 
+directory (Vs30_Ratio_Map) and type
+
+	% make
+
+to create the ratio map of Hybrid/Slope Vs30 values.
+
+To create the plot, type
+
+	% make plots
+
+To erase the ratio map and the plots, type 
+
+	% make clean
+
+Or to erase only the plot, type
+
+	% make clean_plots

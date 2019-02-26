@@ -5,7 +5,7 @@
 include ~/.vs30/Constants.mk
 
 GLOBAL_REGION = -180/180/-56/84
-SMALLER_REGION = -128/-100/40/52
+SMALLER_REGION = -128/-100/35/48
 
 all :  vs30_ratio.grd
 

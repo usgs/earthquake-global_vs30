@@ -1,11 +1,9 @@
-# This Makefile creates an amplification map from the global Vs30 map. 
-
-# This will eventually work for all periods and PGA/PGV
+# This Makefile creates a ratio map from the Hybrid/Slope amplification maps. 
 
 include ~/.vs30/Constants.mk
 
 GLOBAL_REGION = -180/180/-56/84
-SMALLER_REGION = -128/-100/40/52
+SMALLER_REGION = -128/-100/35/48
 
 all :  amplification_ratio.grd
 

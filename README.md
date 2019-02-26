@@ -174,6 +174,17 @@ Then, the two are averaged (using the weight scheme described just above this se
 so that it blends the two together at the interface. Presently, the values for a requested period must 
 be hard-coded from supplementary tables included in the publications listed in this section.
 
+RATIO MAPS
+=============
+Ratio maps are built in two places, ./Amplification/Amp_Ratio_Map and ./Vs30_Ratio_Map. In each location, 
+there is a simple makefile which takes two grids and calculates a ratio between the hybrid values (for either 
+amplification or Vs30) and the slope-based values of the same type of map. In order for the makefiles to work, 
+two grids must exist. In the case of the Amplification ratio map, the those are amplification_blend.grd 
+and slope_amplification_blend.grd (create in the Slope* and Hybrid* subdirectories inside the ./Amplification
+directory). For the Vs30 ratio map, the global_vs30.grd file must exist in the top level directory (this is
+the hybrid map for the globe) and the grid by the same name in the ./Slope directory (this is the slope-based 
+Vs30 map for the globe). Once the prerequisite grids are created, simply refer to the READMEs in the respective 
+directories for instructions on creating the final ratio maps. 
 
 ACKNOWLEGEMENTS
 ---------------

@@ -3,7 +3,7 @@ using Vs30 values from the slope-based global grid. This is not included in the 
 Makefile, so it can only be made (and cleaned) here. Further description can be
 found in the top level README.md file. Current runtime on a standard 
 workstation is approximately 25 minutes. This is basically the same script
-as the new hybrid Amplification map, but it corrects the path errors to
+as the new hybrid Amplification map, but it corrects the path to
 read from the Slope directory, which contains the slope-based Vs30 map.
 
 First, build the global slope-based grid by typing 

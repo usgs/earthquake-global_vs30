@@ -8,7 +8,8 @@ First, build the global grid by typing
 
 	% make
 
-in the top level directory. Then, switch into this directory (Amplification) and type
+in the top level directory. Then, switch into this directory 
+(Amplification/Hybrid_Amplification) and type
 
 	% make
 

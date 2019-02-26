@@ -8,7 +8,7 @@ First, build the global slope-based and hybrid grids by typing
 	% make
 
 in each of their respective directories. Then, switch into this 
-directory (Amplification/Amp_Ratio_Map) and type
+directory (Amplification/Amplification_Ratio_Map) and type
 
 	% make
 

@@ -1,6 +1,6 @@
 # Made with two commands (two form the hinge)
-# makecpt -Cblue,white -T0.5/1/0.05 -Z > amp.cpt
-# makecpt -Cwhite,red -T1/2/0.05 -Z >> amp.cpt
+# makecpt -Cblue,white -T0.5/1/0.05 -Z > ratio.cpt
+# makecpt -Cwhite,red -T1/2/0.05 -Z >> ratio.cpt
 
 0.5	blue	0.55	25.5/25.5/255
 0.55	25.5/25.5/255	0.6	51/51/255

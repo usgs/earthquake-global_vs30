@@ -39,7 +39,7 @@ Bflags2 = af		# Axis labels for the scale.
 Dflags = 24/4.3/9/0.5	# Position, length, and width of the scale.
 	
 vs30_ratio.png : vs30_ratio.grd
-	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C$(AMP_CPT) -B$(Bflags1) -K > vs30_ratio.ps
-	gmt psscale -D$(Dflags) -B$(Bflags2) -C$(AMP_CPT) -O >> vs30_ratio.ps
+	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C$(RATIO_CPT) -B$(Bflags1) -K > vs30_ratio.ps
+	gmt psscale -D$(Dflags) -B$(Bflags2) -C$(RATIO_CPT) -O >> vs30_ratio.ps
 	convert -trim -rotate 90 vs30_ratio.ps vs30_ratio.png
 	rm gmt.history

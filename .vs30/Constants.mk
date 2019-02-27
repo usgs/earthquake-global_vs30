@@ -97,6 +97,7 @@ WEIGHTS_CPT = ../Misc/weights.cpt
 NEW_WEIGHTS_CPT = ../Misc/new_weights.cpt
 NEW_VS30_CPT = ../Misc/new_vs30.cpt
 AMP_CPT = ../Misc/amp.cpt
+RATIO_CPT = ../Misc/ratio.cpt
 
 #
 # The velocity assigned to water-covered areas

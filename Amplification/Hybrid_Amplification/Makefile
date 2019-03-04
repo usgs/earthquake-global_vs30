@@ -6,22 +6,21 @@ include ~/.vs30/Constants.mk
 
 GLOBAL_REGION = -180/180/-56/84
 SMALLER_REGION = -128/-112/52/58
-# SMALLER_REGION = 2/22/0/20
 
-all : combo_glob.grd amplification_blend.grd
+all : combo_glob.grd hybrid_amplification_blend.grd
 
-plots : combo_glob final_mask amplification_blend
+plots : combo_glob final_mask hybrid_amplification_blend
 
 # Each line in the make clean protocol is a different major step in creating the Amplification map. 
 
 clean : clean_plots
 	$(RM) landmask_land.grd landmask_water.grd \
 	active_regions.grd \
-	le_V1.grd FV_le_V1.grd le_V2_gt_V1.grd FV_le_V2_gt_V1.grd gt_V2.grd FV_gt_V2*.grd FV.grd stable_glob.grd \
+	le_V1.grd FV_le_V1.grd le_V2_gt_V1.grd FV_le_V2_gt_V1.grd gt_V2.grd FV_gt_V2*.grd ln_FV.grd FV.grd stable_glob.grd \
 	le_Vref.grd ln_flin_le.grd gt_Vref.grd ln_flin_gt.grd ln_flin.grd flin.grd active_glob.grd \
 	combo_glob.grd \
 	clipmask.grd clipmask_smooth.grd mask_a.grd landmask_smooth.grd new_mask.grd new_mask_mul_landmask.grd new_mask_mul_landmask_add_a.grd final_mask.grd \
-	amplification_blend.grd
+	hybrid_amplification_blend.grd
 
 clean_plots : 
 	$(RM) *.ps *.png gmt.history
@@ -31,7 +30,7 @@ veryclean : clean
 ##################################################################
 # Make the final Amplification map.
 
-amplification_blend.grd : ../../src/insert_grd flin.grd \
+hybrid_amplification_blend.grd : ../../src/insert_grd flin.grd \
 	FV.grd final_mask.grd
 	../../src/insert_grd gin=flin.grd gout=$@ \
 		grid1=FV.grd gmask1=final_mask.grd
@@ -124,7 +123,10 @@ c_stable = -0.554
 stable_glob.grd : FV.grd stable_regions.grd landmask_land.grd
 	gmt grdmath FV.grd stable_regions.grd MUL = $@
 
-FV.grd : FV_gt_V2_2.grd FV_le_V2_gt_V1.grd FV_le_V1.grd
+FV.grd : ln_FV.grd
+	gmt grdmath 2.71828 $< POW = $@
+
+ln_FV.grd : FV_gt_V2_2.grd FV_le_V2_gt_V1.grd FV_le_V1.grd
 	gmt grdmath FV_gt_V2_2.grd FV_le_V2_gt_V1.grd ADD FV_le_V1.grd ADD = $@
 
 FV_gt_V2_2.grd : FV_gt_V2.grd gt_V2.grd
@@ -180,7 +182,7 @@ combo_glob : combo_glob.png
 
 final_mask : final_mask.png
 
-amplification_blend : amplification_blend.png
+hybrid_amplification_blend : hybrid_amplification_blend.png
 
 # Set some initial flags for plotting. Edit these to change the plotting specs for
 # every map below, or just edit them individually lower down. 
@@ -201,8 +203,8 @@ final_mask.png : final_mask.grd
 	gmt pscoast -J$(Jflags) -R$(SMALLER_REGION) -Df -O -N1 -N2 -W >> final_mask.ps
 	convert -trim -rotate 90 final_mask.ps final_mask.png
 
-amplification_blend.png : amplification_blend.grd
-	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C../$(AMP_CPT) -B$(Bflags1) -K > amplification_blend.ps
-	gmt psscale -D$(Dflags) -B$(Bflags2) -C../$(AMP_CPT) -O >> amplification_blend.ps
-	convert -trim -rotate 90 amplification_blend.ps amplification_blend.png
+hybrid_amplification_blend.png : hybrid_amplification_blend.grd
+	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C../$(AMP_CPT) -B$(Bflags1) -K > hybrid_amplification_blend.ps
+	gmt psscale -D$(Dflags) -B$(Bflags2) -C../$(AMP_CPT) -O >> hybrid_amplification_blend.ps
+	convert -trim -rotate 90 hybrid_amplification_blend.ps hybrid_amplification_blend.png
 	rm gmt.history

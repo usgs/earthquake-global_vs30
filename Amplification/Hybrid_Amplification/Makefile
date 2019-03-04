@@ -7,32 +7,32 @@ include ~/.vs30/Constants.mk
 GLOBAL_REGION = -180/180/-56/84
 SMALLER_REGION = -128/-112/52/58
 
-all : combo_glob.grd amplification_blend.grd
+all : combo_glob.grd hybrid_amplification_blend.grd
 
-plots : combo_glob final_mask amplification_blend
+plots : combo_glob final_mask hybrid_amplification_blend
 
 # Each line in the make clean protocol is a different major step in creating the Amplification map. 
 
 clean : clean_plots
 	$(RM) landmask_land.grd landmask_water.grd \
 	active_regions.grd \
-	le_V1.grd FV_le_V1.grd le_V2_gt_V1.grd FV_le_V2_gt_V1.grd gt_V2.grd FV_gt_V2.grd FV.grd stable_glob.grd \
-	le_Vref.grd ln_flin_le.grd gt_Vref.grd ln_flin_gt.grd ln_flin.grd active_glob.grd \
+	le_V1.grd FV_le_V1.grd le_V2_gt_V1.grd FV_le_V2_gt_V1.grd gt_V2.grd FV_gt_V2*.grd ln_FV.grd FV.grd stable_glob.grd \
+	le_Vref.grd ln_flin_le.grd gt_Vref.grd ln_flin_gt.grd ln_flin.grd flin.grd active_glob.grd \
 	combo_glob.grd \
 	clipmask.grd clipmask_smooth.grd mask_a.grd landmask_smooth.grd new_mask.grd new_mask_mul_landmask.grd new_mask_mul_landmask_add_a.grd final_mask.grd \
-	amplification_blend.grd
+	hybrid_amplification_blend.grd
 
 clean_plots : 
-	$(RM) *.ps *.png
+	$(RM) *.ps *.png gmt.history
 
 veryclean : clean
 
 ##################################################################
 # Make the final Amplification map.
 
-amplification_blend.grd : ../../src/insert_grd ln_flin.grd \
+hybrid_amplification_blend.grd : ../../src/insert_grd flin.grd \
 	FV.grd final_mask.grd
-	../../src/insert_grd gin=ln_flin.grd gout=$@ \
+	../../src/insert_grd gin=flin.grd gout=$@ \
 		grid1=FV.grd gmask1=final_mask.grd
 
 ########################################################################
@@ -41,7 +41,7 @@ amplification_blend.grd : ../../src/insert_grd ln_flin.grd \
 # Please see the comments and plots in those Makefiles for more details.
 
 final_mask.grd : new_mask_mul_landmask_add_a.grd
-	gmt grdmath $< DUP 0 GE MUL = $@
+	gmt grdmath $< DUP 0 GT MUL = $@
 
 new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
 	gmt grdmath mask_a.grd new_mask_mul_landmask.grd ADD 1 SUB = $@
@@ -49,8 +49,8 @@ new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
 new_mask_mul_landmask.grd : new_mask.grd landmask_land.grd
 	gmt grdmath new_mask.grd landmask_land.grd MUL = $@
 
-new_mask.grd : stable_regions.grd landmask_smooth.grd
-	gmt grdmath stable_regions.grd DUP NOT landmask_smooth.grd MUL ADD = $@
+new_mask.grd : clipmask.grd landmask_smooth.grd
+	gmt grdmath clipmask.grd DUP NOT landmask_smooth.grd MUL ADD = $@
 
 landmask_smooth.grd : landmask_land.grd ../../src/smooth
 	../../src/smooth infile=landmask_land.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
@@ -62,7 +62,7 @@ clipmask_smooth.grd : clipmask.grd ../../src/smooth
 	../../src/smooth infile=clipmask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
 
 clipmask.grd : landmask_water.grd stable_regions.grd
-	gmt grdmath landmask_water.grd stable_regions.grd ADD 0 GT 1 AND = $@
+	gmt grdmath landmask_water.grd stable_regions.grd ADD 0 GT 1 AND 1 GE = $@
 
 ########################################################################################
 # Combining the acitive and stable region maps without smoothing at the interface.
@@ -83,24 +83,27 @@ combo_glob.grd : active_glob.grd stable_glob.grd
 # We'll default to a 1.0 sec period for now.
 
 T = 1.0
-c = -1.0500
+c_active = -1.0500
 Vc = 1109.95
 Vref = 760
 
-active_glob.grd : ln_flin.grd stable_regions.grd landmask_land.grd
-	gmt grdmath stable_regions.grd 0 EQ ln_flin.grd MUL landmask_land.grd MUL = $@
+active_glob.grd : flin.grd stable_regions.grd landmask_land.grd
+	gmt grdmath stable_regions.grd 0 EQ flin.grd MUL = $@
+
+flin.grd : ln_flin.grd
+	gmt grdmath 2.71828 $< POW = $@
 
 ln_flin.grd : ln_flin_gt.grd ln_flin_le.grd
 	gmt grdmath ln_flin_le.grd ln_flin_gt.grd ADD = $@
 
 ln_flin_gt.grd : gt_Vref.grd
-	gmt grdmath $(Vc) $(Vref) DIV LOG $(c) MUL gt_Vref.grd MUL = $@
+	gmt grdmath $(Vc) $(Vref) DIV LOG $(c_active) MUL gt_Vref.grd MUL = $@
 
 gt_Vref.grd : ../../global_vs30.grd
 	gmt grdmath $< $(Vc) GT = $@
 
 ln_flin_le.grd : ../../global_vs30.grd le_Vref.grd
-	gmt grdmath ../../global_vs30.grd $(Vref) DIV LOG $(c) MUL le_Vref.grd MUL = $@
+	gmt grdmath ../../global_vs30.grd $(Vref) DIV LOG $(c_active) MUL le_Vref.grd MUL = $@
 
 le_Vref.grd : ../../global_vs30.grd
 	gmt grdmath $< $(Vc) LE = $@ 
@@ -115,28 +118,34 @@ le_Vref.grd : ../../global_vs30.grd
 V1 = 278
 V2 = 1103
 Vref = 760
-c = -0.554
+c_stable = -0.554
 
 stable_glob.grd : FV.grd stable_regions.grd landmask_land.grd
-	gmt grdmath FV.grd stable_regions.grd MUL landmask_land.grd MUL = $@
+	gmt grdmath FV.grd stable_regions.grd MUL = $@
 
-FV.grd : FV_gt_V2.grd FV_le_V2_gt_V1.grd FV_le_V1.grd
-	gmt grdmath FV_gt_V2.grd FV_le_V2_gt_V1.grd ADD FV_le_V1.grd ADD = $@
+FV.grd : ln_FV.grd
+	gmt grdmath 2.71828 $< POW = $@
+
+ln_FV.grd : FV_gt_V2_2.grd FV_le_V2_gt_V1.grd FV_le_V1.grd
+	gmt grdmath FV_gt_V2_2.grd FV_le_V2_gt_V1.grd ADD FV_le_V1.grd ADD = $@
+
+FV_gt_V2_2.grd : FV_gt_V2.grd gt_V2.grd
+	gmt grdmath $(V2) $(Vref) DIV LOG $(c_stable) MUL FV_gt_V2.grd ADD gt_V2.grd MUL = $@
 
 FV_gt_V2.grd : gt_V2.grd ../../global_vs30.grd
-	gmt grdmath ../../global_vs30.grd $(V2) DIV LOG $(c) MUL 2 DIV $(V2) $(Vref) DIV LOG $(c) MUL ADD = $@
+	gmt grdmath ../../global_vs30.grd $(V2) DIV LOG $(c_stable) MUL 2 DIV = $@
 
 gt_V2.grd : ../../global_vs30.grd
 	gmt grdmath $< $(V2) GT = $@
 
 FV_le_V2_gt_V1.grd : le_V2_gt_V1.grd ../../global_vs30.grd
-	gmt grdmath ../../global_vs30.grd $(Vref) DIV LOG $(c) MUL = $@
+	gmt grdmath ../../global_vs30.grd $(Vref) DIV LOG $(c_stable) MUL le_V2_gt_V1.grd MUL = $@
 
 le_V2_gt_V1.grd : ../../global_vs30.grd
 	gmt grdmath $< $(V2) LE $< MUL $(V1) GT = $@
 
 FV_le_V1.grd : le_V1.grd
-	gmt grdmath $(V1) $(Vref) DIV LOG $(c) MUL $< MUL = $@
+	gmt grdmath $(V1) $(Vref) DIV LOG $(c_stable) MUL $< MUL = $@
 
 le_V1.grd : ../../global_vs30.grd
 	gmt grdmath $< $(V1) LE = $@
@@ -152,10 +161,10 @@ active_regions.grd : stable_regions.grd
 # Use grdlandmask to create masks where all land is 1 and water is 0 and vice versa.
 
 landmask_land.grd : 
-	gmt grdlandmask -R$(GLOBAL_REGION) -I$(RES)s/$(RES)s -N0/1/0/1/0 -G$@
+	gmt grdlandmask -R$(GLOBAL_REGION) -I$(RES)s/$(RES)s -N0/1/1/1/1 -G$@
 
 landmask_water.grd :
-	gmt grdlandmask -N1/0/1/0/1 -R$(GLOBAL_REGION) -I$(RES)s/$(RES)s -G$@
+	gmt grdlandmask -N1/0/0/0/0 -R$(GLOBAL_REGION) -I$(RES)s/$(RES)s -G$@
 
 ######################################################################################
 # Compile the insert_grd and smooth functions. 
@@ -173,7 +182,7 @@ combo_glob : combo_glob.png
 
 final_mask : final_mask.png
 
-amplification_blend : amplification_blend.png
+hybrid_amplification_blend : hybrid_amplification_blend.png
 
 # Set some initial flags for plotting. Edit these to change the plotting specs for
 # every map below, or just edit them individually lower down. 
@@ -194,8 +203,8 @@ final_mask.png : final_mask.grd
 	gmt pscoast -J$(Jflags) -R$(SMALLER_REGION) -Df -O -N1 -N2 -W >> final_mask.ps
 	convert -trim -rotate 90 final_mask.ps final_mask.png
 
-amplification_blend.png : amplification_blend.grd
-	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C../$(AMP_CPT) -B$(Bflags1) -K > amplification_blend.ps
-	gmt psscale -D$(Dflags) -B$(Bflags2) -C../$(AMP_CPT) -O >> amplification_blend.ps
-	convert -trim -rotate 90 amplification_blend.ps amplification_blend.png
+hybrid_amplification_blend.png : hybrid_amplification_blend.grd
+	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C../$(AMP_CPT) -B$(Bflags1) -K > hybrid_amplification_blend.ps
+	gmt psscale -D$(Dflags) -B$(Bflags2) -C../$(AMP_CPT) -O >> hybrid_amplification_blend.ps
+	convert -trim -rotate 90 hybrid_amplification_blend.ps hybrid_amplification_blend.png
 	rm gmt.history

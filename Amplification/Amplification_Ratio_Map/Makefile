@@ -20,8 +20,8 @@ veryclean : clean
 ##################################################################
 # Make the Amplification Hybrid/Slope ratio map.
 
-amplification_ratio.grd : ../Hybrid_Amplification/amplification_blend.grd ../Slope_Amplification/slope_amplification_blend.grd
-	gmt grdmath ../Hybrid_Amplification/amplification_blend.grd ../Slope_Amplification/slope_amplification_blend.grd DIV = $@
+amplification_ratio.grd : ../Hybrid_Amplification/hybrid_amplification_blend.grd ../Slope_Amplification/slope_amplification_blend.grd
+	gmt grdmath ../Hybrid_Amplification/hybrid_amplification_blend.grd ../Slope_Amplification/slope_amplification_blend.grd DIV = $@
 
 ######################################################################################
 # Make the plots.

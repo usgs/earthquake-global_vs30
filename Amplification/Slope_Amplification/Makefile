@@ -16,7 +16,7 @@ plots : combo_glob final_mask slope_amplification_blend
 clean : clean_plots
 	$(RM) landmask_land.grd landmask_water.grd \
 	active_regions.grd \
-	le_V1.grd FV_le_V1.grd le_V2_gt_V1.grd FV_le_V2_gt_V1.grd gt_V2.grd FV_gt_V2*.grd FV.grd stable_glob.grd \
+	le_V1.grd FV_le_V1.grd le_V2_gt_V1.grd FV_le_V2_gt_V1.grd gt_V2.grd FV_gt_V2*.grd ln_FV.grd FV.grd stable_glob.grd \
 	le_Vref.grd ln_flin_le.grd gt_Vref.grd ln_flin_gt.grd ln_flin.grd flin.grd active_glob.grd \
 	combo_glob.grd \
 	clipmask.grd clipmask_smooth.grd mask_a.grd landmask_smooth.grd new_mask.grd new_mask_mul_landmask.grd new_mask_mul_landmask_add_a.grd final_mask.grd \

@@ -21,7 +21,7 @@ clean : clean_plots
 	$(RM) pnw.grd orwash20c_600.grd waor_$(RES)c.grd north.grd south.grd east.grd \
               west.grd waor_ext.grd mask.grd \
               mask_smooth.grd mask_2.grd mask_smooth_2.grd \
-              weights.grd gmt.history
+              weights.grd gmt.history landmask.grd
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -67,8 +67,11 @@ mask_smooth.grd : mask.grd ../src/smooth
 # make a mask in which 600 -> 0, and everything else -> 1.
 #
 
-mask.grd : pnw.grd 
-	gmt grdmath $< $(WATER) NEQ = $@
+mask.grd : pnw.grd landmask.grd
+	gmt grdmath pnw.grd $(WATER) NEQ landmask.grd MUL = $@
+
+landmask.grd : 
+	gmt grdlandmask -N0/1/0/1/0 -R$(PNW_EXT_REGION) -I$(RES)s/$(RES)s -G$@
 
 ###############################################################################
 # Rescale to the proper resolution and shift the map to make it co-register

@@ -199,52 +199,59 @@ plot_weights : weights.png
 
 plot_final_map_me : me_vs30.png
 
+Jflags = M18		# Mercator projection, 18 cm across
+Bflags = a2f1WSen	# Tick marks. Every 2 degrees deneoted with number, 1 degree tickmarks, print numbers on W and S axes
+Dflags = 20/4.3/9/0.5	# Scalebar - position 20, 4.3. 9 cm long, 0.5 cm wide.
+Eflags = 720		# 720 dpi resolution for psconvert
+Tflags = g		# Output png. Use f for pdf, j for jpg
+
 # Plot original basemap
 
 original.png : Iran_Hybrid_Vs30.grd
-	gmt grdimage Iran_Hybrid_Vs30.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > original.ps
+	gmt grdimage Iran_Hybrid_Vs30.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > original.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> original.ps
-	gmt pscoast -JM12 -R$(IR_BASE_REGION) -Df -O -N1 -N2 -W >> original.ps
-	convert -rotate 90 original.ps original.png
+	gmt pscoast -J$(Jflags) -R$(IR_BASE_REGION) -Df -O -N1 -N2 -W >> original.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) original.ps
 
 # Plot the resampled base Vs30 map
 
 base.png : vs30_$(RES)c.grd
-	gmt grdimage vs30_$(RES)c.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > base.ps
+	gmt grdimage vs30_$(RES)c.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > base.ps
 	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> base.ps
-	gmt pscoast -JM12 -R$(IR_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
-	convert -rotate 90 base.ps base.png
+	gmt pscoast -J$(Jflags) -R$(IR_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) base.ps
  
 # Plot the landmask with CA Vs30s inserted:
  
 iran.png : iran.grd
-	gmt grdimage iran.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > iran.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> iran.ps
-	gmt pscoast -JM12 -R$(IR_EXT_REGION) -Df -O -N1 -N2 -W >> iran.ps
-	convert -rotate 90 iran.ps iran.png
+	gmt grdimage iran.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > iran.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> iran.ps
+	gmt pscoast -J$(Jflags) -R$(IR_EXT_REGION) -Df -O -N1 -N2 -W >> iran.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) iran.ps
  
 # Plot the clipping mask:
 
 final_mask.png : final_mask.grd
-	gmt grdimage final_mask.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > final_mask.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O >> final_mask.ps
-	convert -rotate 90 final_mask.ps final_mask.png
+	gmt grdimage final_mask.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > final_mask.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O >> final_mask.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) final_mask.ps
 
 # Plot the weights:
 
 weights.png : weights.grd
-	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -JM12 -Ba2f1WSen -K > weights.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps     
-	gmt pscoast -JM12 -R$(IR_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
-	convert -rotate 90 weights.ps weights.png
+	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -J$(Jflags) -B$(Bflags) -K > weights.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps     
+	gmt pscoast -J$(Jflags) -R$(IR_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) weights.ps
  
-# Plot the new Vs30 map in a cut out map of the western US
+# Plot the new Vs30 map in a cut out map of the larger Middle East region:
  
 me_vs30.png : me_vs30.grd
-	gmt grdimage me_vs30.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > me_vs30.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> me_vs30.ps
-	gmt pscoast -JM12 -R$(ME_REGION) -Df -O -N1 -N2 -W >> me_vs30.ps
-	convert -rotate 90 me_vs30.ps me_vs30.png
+	gmt grdimage me_vs30.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > me_vs30.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> me_vs30.ps
+	gmt pscoast -J$(Jflags) -R$(ME_REGION) -Df -O -N1 -N2 -W >> me_vs30.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) me_vs30.ps
+	rm gmt.history
 
 me_vs30.grd : ../global_vs30.grd
 	gmt grdcut -R$(ME_REGION) $< -G$@

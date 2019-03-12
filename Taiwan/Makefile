@@ -66,13 +66,22 @@ plot_final_map : taiwan.png
 
 plot_raw_map : taiwan_raw.png
 
+# Set some flags for plotting. To change things for an individual map,
+# make sure to only change it in that particular code block below.
+
+Jflags = M12		# Mercator projection, 12 cm across
+Bflags = a2f1WSen	# Tick marks. Every 2 degrees deneoted with number, 1 degree tickmarks, print numbers on W and S axes
+Dflags = 14/4.3/9/0.5	# Scalebar - position 14, 4.3. 9 cm long, 0.5 cm wide.
+Eflags = 720		# 720 dpi resolution for psconvert
+Tflags = g		# Output png. Use f for pdf, j for jpg
+
 # Plot the weights:
  
 weights.png : weights.grd
-	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba1WSen -K > weights.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
-	gmt pscoast -JM12 -R$(TW_REGION) -Df -O -N1 -N2 -W >> weights.ps
-	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
+	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -J$(Jflags) -B$(Bflags) -K > weights.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps
+	gmt pscoast -J$(Jflags) -R$(TW_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) weights.ps
  
 # Plot the new Vs30 map:
 ONE = 1.0
@@ -83,10 +92,11 @@ TW_REG_YMAX = $(shell echo $(TW_YMAX) + $(ONE) | bc)
 TW_REG = $(TW_REG_XMIN)/$(TW_REG_XMAX)/$(TW_REG_YMIN)/$(TW_REG_YMAX)
  
 taiwan.png : taiwan_region.grd
-	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba1WSen -K > taiwan_region.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> taiwan_region.ps
-	gmt pscoast -JM12 -R$(TW_REG) -O -Df -N1 -N2 -W >> taiwan_region.ps
-	convert -trim -density 300x300 -rotate 90 taiwan_region.ps taiwan_region.png
+	gmt grdimage $< -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > taiwan_region.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> taiwan_region.ps
+	gmt pscoast -J$(Jflags) -R$(TW_REG) -O -Df -N1 -N2 -W >> taiwan_region.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) taiwan_region.ps
+	rm gmt.history
 
 taiwan_region.grd : ../global_vs30.grd
 	gmt grdcut -R$(TW_REG) $< -G$@
@@ -94,8 +104,7 @@ taiwan_region.grd : ../global_vs30.grd
 # Plot the raw geology map
 
 taiwan_raw.png : $(TW_GRD_FILE)
-	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba1WSen -K > taiwan_raw.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> taiwan_raw.ps
-	gmt pscoast -JM12 -R$(TW_REGION) -O -Df -N1 -N2 -W >> taiwan_raw.ps
-	convert -trim -rotate 90 -density 300x300 taiwan_raw.ps taiwan_raw.png
-
+	gmt grdimage $< -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > taiwan_raw.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> taiwan_raw.ps
+	gmt pscoast -J$(Jflags) -R$(TW_REGION) -O -Df -N1 -N2 -W >> taiwan_raw.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) taiwan_raw.ps

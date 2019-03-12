@@ -35,9 +35,11 @@ Jflags = M9i		# Set the projection. Mercator, 9 inches wide.
 Bflags1 = a2WSen	# Axis labels for the whole plot. One label every 2 degrees, only plot on W and S side. 
 Bflags2 = af		# Axis labels for the scale. 
 Dflags = 24/4.3/9/0.5	# Position, length, and width of the scale.
+Eflags = 720		# 720 dpi resolution for psconvert
+Tflags = g		# Output png. Use f for pdf, j for jpg
 
 amplification_ratio.png : amplification_ratio.grd
 	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C../$(RATIO_CPT) -B$(Bflags1) -K > amplification_ratio.ps
 	gmt psscale -D$(Dflags) -B$(Bflags2) -C../$(RATIO_CPT) -O >> amplification_ratio.ps
-	convert -trim -rotate 90 amplification_ratio.ps amplification_ratio.png
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) amplification_ratio.ps
 	rm gmt.history

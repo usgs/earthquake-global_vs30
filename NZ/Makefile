@@ -70,13 +70,22 @@ plot_final_map : newzealand.png
 
 plot_raw_map : newzealand_raw.png
 
+# Set some flags for plotting. To change things for an individual map,
+# make sure to only change it in that particular code block below.
+
+Jflags = M12		# Mercator projection, 12 cm across
+Bflags = a4f2WSen	# Tick marks. Every 4 degrees deneoted with number, 2 degree tickmarks, print numbers on W and S axes
+Dflags = 14/4.3/9/0.5	# Scalebar - position 14, 4.3. 9 cm long, 0.5 cm wide.
+Eflags = 720		# 720 dpi resolution for psconvert
+Tflags = g		# Output png. Use f for pdf, j for jpg
+
 # Plot the weights:
  
 weights.png : weights.grd
-	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba4f2eWSn -K > weights.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps
-	gmt pscoast -JM12 -R$(NZ_REGION) -Df -O -N1 -N2 -W >> weights.ps
-	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
+	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -J$(Jflags) -B$(Bflags) -K > weights.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps
+	gmt pscoast -J$(Jflags) -R$(NZ_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) weights.ps
  
 # Plot the new Vs30 map:
 ONE = 1.0
@@ -87,10 +96,11 @@ NZ_REG_YMAX = $(shell echo $(NZ_YMAX) + $(ONE) | bc)
 NZ_REG = $(NZ_REG_XMIN)/$(NZ_REG_XMAX)/$(NZ_REG_YMIN)/$(NZ_REG_YMAX)
  
 newzealand.png : newzealand_region.grd
-	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eWSn -K > newzealand_region.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> newzealand_region.ps
-	gmt pscoast -JM12 -R$(NZ_REG) -O -Df -N1 -N2 -W >> newzealand_region.ps
-	convert -trim -density 300x300 -rotate 90 newzealand_region.ps newzealand_region.png
+	gmt grdimage $< -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > newzealand_region.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> newzealand_region.ps
+	gmt pscoast -J$(Jflags) -R$(NZ_REG) -O -Df -N1 -N2 -W >> newzealand_region.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) newzealand_region.ps
+	rm gmt.history
 
 newzealand_region.grd : ../global_vs30.grd
 	gmt grdcut -R$(NZ_REG) $< -G$@
@@ -98,8 +108,8 @@ newzealand_region.grd : ../global_vs30.grd
 # Plot the raw geology map
 
 newzealand_raw.png : vs30_nz_gmt4.grd
-	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba4f2eWSn -K > newzealand_raw.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> newzealand_raw.ps
-	gmt pscoast -JM12 -R$(NZ_REGION) -O -Df -N1 -N2 -W >> newzealand_raw.ps
-	convert -trim -rotate 90 -density 300x300 newzealand_raw.ps newzealand_raw.png
+	gmt grdimage $< -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > newzealand_raw.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> newzealand_raw.ps
+	gmt pscoast -J$(Jflags) -R$(NZ_REGION) -O -Df -N1 -N2 -W >> newzealand_raw.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) newzealand_raw.ps
 

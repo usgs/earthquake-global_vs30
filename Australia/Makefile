@@ -72,13 +72,22 @@ plot_final_map : aus.png
 
 plot_raw_map : aus_raw.png
 
+# Set some flags for plotting. To change things for individual plots,
+# make sure to only change it in the code block below.
+
+Jflags = M7i		# Mercator projection, 7 inches across
+Bflags = a10f5eWSn	# Tick marks. Every 10 degrees deneoted with number, 5 degree tickmarks, print numbers on W and S axes
+Dflags = 20/4.3/9/0.5	# Scalebar - position 20, 4.3. 9 cm long, 0.5 cm wide.
+Eflags = 720		# 720 dpi resolution for psconvert
+Tflags = g		# Output png. Use f for pdf, j for jpg
+
 # Plot the weights:
  
 weights.png : weights.grd
-	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -JM12 -Ba10f5eWSn -K > weights.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps
-	gmt pscoast -JM12 -R$(AUS_REGION) -Df -O -N1 -N2 -W >> weights.ps
-	convert -trim -rotate 90 -density 300x300 weights.ps weights.png
+	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -J$(Jflags) -B$(Bflags) -K > weights.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps
+	gmt pscoast -J$(Jflags) -R$(AUS_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) weights.ps
  
 # Plot the new Vs30 map:
 ONE = 1.0
@@ -89,10 +98,11 @@ AUS_REG_YMAX = $(shell echo $(AUS_YMAX) + $(ONE) | bc)
 AUS_REG = $(AUS_REG_XMIN)/$(AUS_REG_XMAX)/$(AUS_REG_YMIN)/$(AUS_REG_YMAX)
  
 aus.png : aus_region.grd
-	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba10f5eWSn -K > aus_region.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_region.ps
-	gmt pscoast -JM12 -R$(AUS_REG) -O -Df -N1 -N2 -W >> aus_region.ps
-	convert -trim -density 300x300 -rotate 90 aus_region.ps aus_region.png
+	gmt grdimage $< -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > aus.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> aus.ps
+	gmt pscoast -J$(Jflags) -R$(AUS_REG) -O -Df -N1 -N2 -W >> aus.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) aus.ps
+	rm gmt.history
 
 aus_region.grd : ../global_vs30.grd
 	gmt grdcut -R$(AUS_REG) $< -G$@
@@ -100,8 +110,8 @@ aus_region.grd : ../global_vs30.grd
 # Plot the raw geology map
 
 aus_raw.png : $(AUS_GRD_FILE)
-	gmt grdimage $< -JM12 -C$(VS30_CPT) -Ba10f5eWSn -K > aus_raw.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> aus_raw.ps
-	gmt pscoast -JM12 -R$(AUS_REGION) -O -Df -N1 -N2 -W >> aus_raw.ps
-	convert -trim -rotate 90 -density 300x300 aus_raw.ps aus_raw.png
+	gmt grdimage $< -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > aus_raw.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> aus_raw.ps
+	gmt pscoast -J$(Jflags) -R$(AUS_REGION) -O -Df -N1 -N2 -W >> aus_raw.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) aus_raw.ps
 

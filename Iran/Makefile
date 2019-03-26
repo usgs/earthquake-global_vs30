@@ -209,7 +209,7 @@ Tflags = g		# Output png. Use f for pdf, j for jpg
 
 original.png : Iran_Hybrid_Vs30.grd
 	gmt grdimage Iran_Hybrid_Vs30.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > original.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> original.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> original.ps
 	gmt pscoast -J$(Jflags) -R$(IR_BASE_REGION) -Df -O -N1 -N2 -W >> original.ps
 	gmt psconvert -E$(Eflags) -P -T$(Tflags) original.ps
 
@@ -217,7 +217,7 @@ original.png : Iran_Hybrid_Vs30.grd
 
 base.png : vs30_$(RES)c.grd
 	gmt grdimage vs30_$(RES)c.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > base.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> base.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> base.ps
 	gmt pscoast -J$(Jflags) -R$(IR_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
 	gmt psconvert -E$(Eflags) -P -T$(Tflags) base.ps
  

@@ -191,20 +191,22 @@ Jflags = M9i		# Set the projection. Mercator, 9 inches wide.
 Bflags1 = a2WSen	# Axis labels for the whole plot. One label every 2 degrees, only plot on W and S side. 
 Bflags2 = af		# Axis labels for the scale. 
 Dflags = 24/4.3/9/0.5	# Position, length, and width of the scale.
+Eflags = 720		# 720 dpi resolution for psconvert
+Tflags = g		# Output png. Use f for pdf, j for jpg
 
 combo_glob.png : combo_glob.grd
 	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C../$(AMP_CPT) -B$(Bflags1) -K > combo_glob.ps
 	gmt psscale -D$(Dflags) -B$(Bflags2) -C../$(AMP_CPT) -O >> combo_glob.ps
-	convert -rotate 90 combo_glob.ps -strip combo_glob.png
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) combo_glob.ps
 
 final_mask.png : final_mask.grd
 	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C../$(NEW_WEIGHTS_CPT) -B$(Bflags1) -K > final_mask.ps
 	gmt psscale -D$(Dflags) -B$(Bflags2) -C../$(NEW_WEIGHTS_CPT) -O -K >> final_mask.ps
 	gmt pscoast -J$(Jflags) -R$(SMALLER_REGION) -Df -O -N1 -N2 -W >> final_mask.ps
-	convert -trim -rotate 90 final_mask.ps final_mask.png
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) final_mask.ps
 
 slope_amplification_blend.png : slope_amplification_blend.grd
 	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C../$(AMP_CPT) -B$(Bflags1) -K > slope_amplification_blend.ps
 	gmt psscale -D$(Dflags) -B$(Bflags2) -C../$(AMP_CPT) -O >> slope_amplification_blend.ps
-	convert -trim -rotate 90 slope_amplification_blend.ps slope_amplification_blend.png
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) slope_amplification_blend.ps
 	rm gmt.history

@@ -87,6 +87,9 @@ global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 
 clean : $(MKDIRS_CLEAN)
 
+clean_plots :
+	$(RM) *.ps *.png
+
 veryclean : $(MKDIRS_VCLEAN)
 
 spotless : veryclean
@@ -108,11 +111,24 @@ src/insert_grd :
 # Make plot
 #
 
+# Set some flags for plotting. To change things for an individual map,
+# make sure to only change it in that particular code block below.
+
+Jflags = M20			# Mercator projection, 20 cm across
+Bflags = a24f12WSen		# Tick marks. Every 24 degrees deneoted with number, 12 degree tickmarks, print numbers on W and S axes
+Dflags = 21/4.3/9/0.5		# Scalebar - position 21, 4.3. 9 cm long, 0.5 cm wide
+Eflags = 2000			# 720 dpi resolution for psconvert
+Tflags = g			# Output png. Use f for pdf, j for jpg
+Aflags = 1000/0/2		# Things w/area smaller than 1000 km^2 will not be plotted
+Sflags = 128/128/255		# Make wet areas this color
+Rflags = -180/180/-56/72	# Global extent of the plot
+Cflags = Misc/global.cpt	# Define the cpt we wish to use
+
 global_vs30_plot : global_vs30.png
 
 global_vs30.png : global_vs30.grd
-	gmt grdimage $< -JM20 -R-180/180/-56/72 -CMisc/global.cpt -Ba24d/a12eWSen -K > global_vs30.ps
-	gmt pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_vs30.ps
-	gmt psscale -D21/4.3/9/0.5 -L -CMisc/global.cpt -O >> global_vs30.ps
-	convert -rotate 90 -density 300x300 -crop 3000x1400+100+950 global_vs30.ps $@
-
+	gmt grdimage $< -J$(Jflags) -R$(Rflags) -C$(Cflags) -B$(Bflags) -K > global_vs30.ps
+	gmt pscoast -J$(Jflags) -R$(Rflags) -Df -N1 -W -S$(Sflags) -A$(Aflags) -O -K >> global_vs30.ps
+	gmt psscale -D$(Dflags) -L -C$(Cflags) -O >> global_vs30.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) global_vs30.ps
+	rm gmt.history

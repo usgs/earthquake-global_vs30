@@ -158,60 +158,70 @@ plot_weights : weights.png
 
 plot_final_map_wus : wus.png
 
+# Set some flags for plotting. To change things for an individual map, 
+# make sure to only change it in that particular code block below.
+
+Jflags = M12		# Mercator projection, 12 cm across
+Bflags = a2f1WSen	# Tick marks. Every 2 degrees deneoted with number, 1 degree tickmarks, print numbers on W and S axes
+Dflags = 14/4.3/9/0.5	# Scalebar - position 14, 4.3. 9 cm long, 0.5 cm wide.
+Eflags = 720		# 720 dpi resolution for psconvert
+Tflags = g		# Output png. Use f for pdf, j for jpg
+
 # Plot original basemap
 
 original.png : California_Vs30_7p5c.grd
-	gmt grdimage California_Vs30_7p5c.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > original.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> original.ps
-	gmt pscoast -JM12 -R$(CA_BASE_REGION) -Df -O -N1 -N2 -W >> original.ps
-	convert -rotate 90 original.ps original.png
+	gmt grdimage California_Vs30_7p5c.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > original.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> original.ps
+	gmt pscoast -J$(Jflags) -R$(CA_BASE_REGION) -Df -O -N1 -N2 -W >> original.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) original.ps
 
 # Plot the resampled base Vs30 map
 
 base.png : vs30_$(RES)c.grd
-	gmt grdimage vs30_$(RES)c.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > base.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> base.ps
-	gmt pscoast -JM12 -R$(CA_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
-	convert -rotate 90 base.ps base.png
- 
+	gmt grdimage vs30_$(RES)c.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > base.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> base.ps
+	gmt pscoast -J$(Jflags) -R$(CA_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) base.ps
+
 # Plot the landmask with CA Vs30s inserted:
  
 california.png : california.grd
-	gmt grdimage california.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > landmask.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> landmask.ps
-	gmt pscoast -JM12 -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> landmask.ps
-	convert -rotate 90 landmask.ps california.png
+	gmt grdimage california.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > california.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> california.ps
+	gmt pscoast -J$(Jflags) -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> california.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) california.ps
  
 # Plot the clipping mask:
 
 clipmask.png : mask.grd
-	gmt grdimage mask.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > clipmask.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O >> clipmask.ps
-	convert -rotate 90 clipmask.ps clipmask.png
+	gmt grdimage mask.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > clipmask.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O >> clipmask.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) clipmask.ps
  
 # Plot the smoothed clipping mask:
 
 landmask_smooth.png : mask_smooth.grd
-	gmt grdimage mask_smooth.grd -JM12 -C$(NEW_WEIGHTS_CPT) -Ba2f1WSen -K > landmask_smooth.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> landmask_smooth.ps
-	gmt pscoast -JM12 -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> landmask_smooth.ps
-	convert -rotate 90 landmask_smooth.ps landmask_smooth.png
+	gmt grdimage mask_smooth.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > landmask_smooth.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> landmask_smooth.ps
+	gmt pscoast -J$(Jflags) -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> landmask_smooth.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) landmask_smooth.ps
 
 # Plot the weights:
 
 weights.png : weights.grd
-	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -JM12 -Ba2f1WSen -K > weights.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps     
-	gmt pscoast -JM12 -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
-	convert -rotate 90 weights.ps weights.png
+	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -J$(Jflags) -B$(Bflags) -K > weights.ps
+	gmt psscale -D$(Dflags) -L -C$(WEIGHTS_CPT) -O -K >> weights.ps     
+	gmt pscoast -J$(Jflags) -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt psconvert -E720 -P -TGg weights.ps
  
 # Plot the new Vs30 map in a cut out map of the western US
  
 wus.png : wus_vs30.grd
-	gmt grdimage wus_vs30.grd -JM12 -C$(NEW_VS30_CPT) -Ba2f1WSen -K > wus.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(NEW_VS30_CPT) -O -K >> wus.ps
-	gmt pscoast -JM12 -R$(WUS_REGION) -Df -O -N1 -N2 -W >> wus.ps
-	convert -rotate 90 wus.ps wus.png
+	gmt grdimage wus_vs30.grd -J$(Jflags) -C$(NEW_VS30_CPT) -B$(Bflags) -K > wus.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_VS30_CPT) -O -K >> wus.ps
+	gmt pscoast -J$(Jflags) -R$(WUS_REGION) -Df -O -N1 -N2 -W >> wus.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) wus.ps
+	rm gmt.history
 
 wus_vs30.grd : ../global_vs30.grd
 	gmt grdcut -R$(WUS_REGION) $< -G$@

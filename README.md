@@ -58,10 +58,11 @@ herein. GDAL can be installed by most package managers, but they often
 have very old versions. The software can also be found at www.gdal.org.
 
 
-+ **ImageMagick** must be installed in order to view the plots created to spot-check
-the grid creation (using the command "convert"). This code is tested with version 7.0.8-7. 
-Please make sure to follow the installation instructions to ensure your path points 
-to the correct location. 
++ **ghostscript** must be installed (and in your path) to view the plots created in order to 
+spot-check the various steps in correctly formatting the new Vs30 maps. 
+The gs command is not explicitly invoked, but is required for use of the 
+GMT command "psconvert". This command changes the .ps files into other formats such 
+as jpeg and pdf. Tested with version 9.23.
 
 
 + If you have runtime problems with the C programs ("smooth", "insert_grd",

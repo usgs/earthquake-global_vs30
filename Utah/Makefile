@@ -109,45 +109,54 @@ plot_final_map_wus : wus.png
 
 plot_raw_map : utah.png
 
+# Set some flags for plotting. To change things for an individual map,
+# make sure to only change it in that particular code block below.
+
+Jflags = M12		# Mercator projection, 12 cm across
+Bflags = a2f1WSen	# Tick marks. Every 2 degrees deneoted with number, 1 degree tickmarks, print numbers on W and S axes
+Dflags = 14/4.3/9/0.5	# Scalebar - position 14, 4.3. 9 cm long, 0.5 cm wide.
+Eflags = 720		# 720 dpi resolution for psconvert
+Tflags = g		# Output png. Use f for pdf, j for jpg
+
 # Plot the base Vs30 Map:
  
 base.png : ut_$(RES)c.grd
-	gmt grdimage ut_$(RES)c.grd -JM12 -C$(VS30_CPT) -Ba1WSen -K > base.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> base.ps
-	gmt pscoast -JM12 -R$(UTAH_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
-	convert -trim -density 300x300 -rotate 90 base.ps base.png
+	gmt grdimage ut_$(RES)c.grd -J$(Jflags) -C$(VS30_CPT) -B$(Bflags) -K > base.ps
+	gmt psscale -D$(Dflags) -L -C$(VS30_CPT) -O -K >> base.ps
+	gmt pscoast -J$(Jflags) -R$(UTAH_BASE_REGION) -Df -O -N1 -N2 -W >> base.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) base.ps
  
 # Plot the clipping mask:
  
 clipmask.png : mask.grd
-	gmt grdimage mask.grd -JM12 -C$(WEIGHTS_CPT) -Ba1WSen -K > clipmask.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> clipmask.ps
-	gmt pscoast -JM12 -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> clipmask.ps
-	convert -trim -rotate 90 clipmask.ps clipmask.png
+	gmt grdimage mask.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > clipmask.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> clipmask.ps
+	gmt pscoast -J$(Jflags) -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> clipmask.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) clipmask.ps
  
 # Plot the smoothed clipping mask:
  
 mask_smooth.png : mask_smooth.grd
-	gmt grdimage mask_smooth.grd -JM12 -C$(WEIGHTS_CPT) -Ba1WSen -K > mask_smooth.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> mask_smooth.ps
-	gmt pscoast -JM12 -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> mask_smooth.ps
-	convert -trim -rotate 90 mask_smooth.ps mask_smooth.png
- 
+	gmt grdimage mask_smooth.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > mask_smooth.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> mask_smooth.ps
+	gmt pscoast -J$(Jflags) -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> mask_smooth.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) mask_smooth.ps
+
 # Plot the weights:
  
 weights.png : weights.grd
-	gmt grdimage weights.grd -C$(WEIGHTS_CPT) -JM12 -Ba1WSen -K > weights.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O -K >> weights.ps     
-	gmt pscoast -JM12 -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
-	convert -trim -rotate 90 weights.ps weights.png
+	gmt grdimage weights.grd -C$(NEW_WEIGHTS_CPT) -J$(Jflags) -B$(Bflags) -K > weights.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> weights.ps     
+	gmt pscoast -J$(Jflags) -R$(UTAH_EXT_REGION) -Df -O -N1 -N2 -W >> weights.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) weights.ps
  
 # Plot the new Vs30 map:
  
 wus.png : wus_vs30.grd
-	gmt grdimage wus_vs30.grd -JM12 -C$(VS30_CPT) -Ba4f2WSen -K > wus.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C$(VS30_CPT) -O -K >> wus.ps
-	gmt pscoast -JM12 -R$(BIG_WUS_REGION) -O -Df -N1 -N2 -W >> wus.ps
-	convert -trim -density 300x300 -rotate 90 wus.ps wus.png
+	gmt grdimage wus_vs30.grd -J$(Jflags) -C$(VS30_CPT) -B$(Bflags) -K > wus.ps
+	gmt psscale -D$(Dflags) -L -C$(VS30_CPT) -O -K >> wus.ps
+	gmt pscoast -J$(Jflags) -R$(BIG_WUS_REGION) -O -Df -N1 -N2 -W >> wus.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) wus.ps
 
 wus_vs30.grd : ../global_vs30.grd
 	gmt grdcut -R$(BIG_WUS_REGION) $< -G$@
@@ -155,8 +164,8 @@ wus_vs30.grd : ../global_vs30.grd
 # Plot the raw geology map using its own scale.
 
 utah.png : utah6_geology_60s.grd
-	gmt grdimage utah6_geology_60s.grd -JM12 -C../Misc/utah.cpt -Ba1WSen -K > utah.ps
-	gmt psscale -D14/4.3/9/0.5 -L -C../Misc/utah.cpt -O -K >> utah.ps
-	gmt pscoast -R-114.2365/-108.877/36.7625/42.4865 -JM12 -N1 -N2 -W -Df -O >> utah.ps
-	convert -rotate 90 -density 300x300 utah.ps utah.png
-
+	gmt grdimage utah6_geology_60s.grd -J$(Jflags) -C../Misc/utah.cpt -B$(Bflags) -K > utah.ps
+	gmt psscale -D$(Dflags) -L -C../Misc/utah.cpt -O -K >> utah.ps
+	gmt pscoast -R-114.2365/-108.877/36.7625/42.4865 -J$(Jflags) -N1 -N2 -W -Df -O >> utah.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) utah.ps
+	rm gmt.history

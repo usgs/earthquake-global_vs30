@@ -12,6 +12,8 @@ global_vs30.grd : global_grad.grd global_landmask.grd cratons_smooth.grd \
                   ../src/grad2vs30
 	../src/grad2vs30 gradient_file=global_grad.grd craton_file=cratons_smooth.grd landmask_file=global_landmask.grd output_file=global_vs30.grd water=$(WATER)
 
+plots : plot_cratons plot_cratons_smooth plot_global_topo plot_global_vs30
+
 clean : clean_plots
 	$(RM) cratons.bil cratons.prj cratons.hdr cratons.grd cratons_smooth.grd \
               global_landmask.grd elev/gmted_global.bil gmted_global.grd \
@@ -120,27 +122,43 @@ plot_cratons_smooth : cratons_smooth.png
 plot_global_topo : global_topo.png
 
 plot_global_vs30 : global_vs30.png
-	
+
+# Set some flags for plotting. To change things for individual plots,
+# make sure to only change it in the code block below.
+
+Jflags = M18		# Mercator projection, 18 cm across
+Bflags = a24f12eWSn	# Tick marks. Every 2 degrees deneoted with number, 1 degree tickmarks, print numbers on W and S axes
+Dflags = 19/4.3/9/0.5	# Scalebar - position 19, 4.3. 9 cm long, 0.5 cm wide.
+Eflags = 720		# 720 dpi resolution for psconvert
+Tflags = g		# Output png. Use f for pdf, j for jpg
+Sflags = 128/128/255	# Fill wet areas with this color.
+Aflags = 1000/0/2	# Don't plot things smaller than 1000 km^2
+Rflags1 = -180/180/-56/72	# Larger region to plot
+Rflags2 = -130/-48/12/50	# Smaller region to plot
+Cflags1 = ../Misc/tan.cpt	# Location of tan cpt
+Cflags2 = ../Misc/global.cpt	# Location of global cpt
+
 cratons.png : cratons.grd
-	gmt grdimage cratons.grd -JM18 -R-180/180/-56/72 -C$(WEIGHTS_CPT) -Ba24d/a12eWSen -K > cratons.ps
-	gmt pscoast -JM18 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> cratons.ps
-#	gmt psscale -D20/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> cratons.ps
-	convert -rotate 90 -density 300x300 -crop 2400x1400+100+950 cratons.ps cratons.png
+	gmt grdimage cratons.grd -J$(Jflags) -R$(Rflags1) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > cratons.ps
+	gmt pscoast -J$(Jflags) -R$(Rflags1) -Df -N1 -W -S$(Sflags) -A$(Aflags) -O -K >> cratons.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O >> cratons.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) cratons.ps
 
 cratons_smooth.png : cratons_smooth.grd
-	gmt grdimage cratons_smooth.grd -JM18 -R-130/-48/12/50 -C$(WEIGHTS_CPT) -Ba8d/a4eWSen -K > cratons_smooth.ps
-	gmt pscoast -JM18 -R-130/-48/12/50 -Di -N1 -N2 -W -S128/128/255 -A500/0/2 -O -K >> cratons_smooth.ps
-	gmt psscale -D19/4.3/9/0.5 -L -C$(WEIGHTS_CPT) -O >> cratons_smooth.ps
-	convert -rotate 90 -density 300x300 -crop 2700x1400+100+950 cratons_smooth.ps cratons_smooth.png
-	
+	gmt grdimage cratons_smooth.grd -J$(Jflags) -R$(Rflags2) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > cratons_smooth.ps
+	gmt pscoast -J$(Jflags) -R$(Rflags2) -Df -N1 -N2 -W -S$(Sflags) -A$(Aflags) -O -K >> cratons_smooth.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O >> cratons_smooth.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) cratons_smooth.ps
+
 global_topo.png : gmted_global.grd
-	gmt grdimage gmted_global.grd -JM20 -R-180/180/-56/72 -C../Misc/tan.cpt -Ba24d/a12eWSen -K > global_topo.ps
-	gmt pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_topo.ps
-#	psscale -D21/4.3/9/0.5 -L -C../Misc/tan.cpt -O >> global_topo.ps
-	gmt convert -rotate 90 -density 300x300 -crop 2700x1400+100+950 global_topo.ps global_topo.png
+	gmt grdimage gmted_global.grd -J$(Jflags) -R$(Rflags1) -C$(Cflags1) -B$(Bflags) -K > global_topo.ps
+	gmt pscoast -J$(Jflags) -R$(Rflags1) -Df -N1 -W -S$(Sflags) -A$(Aflags) -O -K >> global_topo.ps
+	gmt psscale -D$(Dflags) -L -C$(Cflags1) -O >> global_topo.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) global_topo.ps
 
 global_vs30.png : global_vs30.grd
-	gmt grdimage global_vs30.grd -JM20 -R-180/180/-56/72 -C../Misc/global.cpt -Ba24d/a12eWSen -K > global_vs30.ps
-	gmt pscoast -JM20 -R-180/180/-56/72 -Di -N1 -W -S128/128/255 -A1000/0/2 -O -K >> global_vs30.ps
-	gmt psscale -D21/4.3/9/0.5 -L -C../Misc/global.cpt -O >> global_vs30.ps
-	convert -rotate 90 -density 300x300 -crop 3000x1400+100+950 global_vs30.ps global_vs30.png
+	gmt grdimage global_vs30.grd -J$(Jflags) -R$(Rflags1) -C$(Cflags2) -B$(Bflags) -K > global_vs30.ps
+	gmt pscoast -J$(Jflags) -R$(Rflags1) -Df -N1 -W -S$(Sflags) -A$(Aflags) -O -K >> global_vs30.ps
+	gmt psscale -D$(Dflags) -L -C$(Cflags2) -O >> global_vs30.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) global_vs30.ps
+	rm gmt.history

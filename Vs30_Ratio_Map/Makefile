@@ -36,10 +36,12 @@ vs30_ratio : vs30_ratio.png
 Jflags = M9i		# Set the projection. Mercator, 9 inches wide.
 Bflags1 = a2WSen	# Axis labels for the whole plot. One label every 2 degrees, only plot on W and S side. 
 Bflags2 = af		# Axis labels for the scale. 
-Dflags = 24/4.3/9/0.5	# Position, length, and width of the scale.
-	
+Dflags = 24/4.3/9/0.5	# Position(x,y), length, and width of the scale.
+Tflags = g		# png
+Eflags = 720		# 720 dpi
+
 vs30_ratio.png : vs30_ratio.grd
 	gmt grdimage $< -J$(Jflags) -R$(SMALLER_REGION) -C$(RATIO_CPT) -B$(Bflags1) -K > vs30_ratio.ps
 	gmt psscale -D$(Dflags) -B$(Bflags2) -C$(RATIO_CPT) -O >> vs30_ratio.ps
-	convert -trim -rotate 90 vs30_ratio.ps vs30_ratio.png
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) vs30_ratio.ps
 	rm gmt.history

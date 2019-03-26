@@ -1,4 +1,6 @@
-# New cpt for weights only.
+# New cpt for weights only. Allows for easy debugging. Any values "B"elow 0
+# will show up 255/0/0 (RED), anything above 1 will be green, and any
+# NaN values will be blue.
 
 0	6.375/6.375/6.375	0.05	6.375/6.375/6.375
 0.05	19.125/19.125/19.125	0.1	19.125/19.125/19.125

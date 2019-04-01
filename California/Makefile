@@ -34,8 +34,9 @@ plots : plot_original_map plot_base_map plot_vs30_landmask plot_clip_mask plot_s
         plot_weights plot_final_map_wus
 
 clean : clean_plots
-	$(RM) vs30_*c.grd vs30_*c_ext.grd vs30_*c_top_bot.grd vs30_*c_top.grd landmask.grd \
-              mask.grd mask_smooth.grd top.grd east.grd bot.grd \
+	$(RM) vs30_*c.grd vs30_*c_ext.grd vs30_*c_top_bot.grd vs30_*c_top.grd landmask*.grd \
+              ca_non_zero.grd clipmask.grd clipmask_smooth.grd mask_a.grd landmask_smooth.grd new_mask.grd new_mask_mul*.grd final_mask.grd \
+              top.grd east.grd bot.grd \
               weights.grd california.grd lakes_600.grd california_SF_bay_1200.grd gmt.history
 
 clean_plots :
@@ -52,27 +53,41 @@ veryclean : clean
 # outside = 0, inside ranging from 0 to 1). 
 #
 
-weights.grd : mask_smooth.grd
+weights.grd : final_mask.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
 
-#################################################################################
-# Smooth the mask. This will blur the border, but we'll fix that in a 
-# minute. We make the filter twice the width and height that we want (for the
-# same reason). Let's try a 0.35 degree transition, which means a 0.7 degree 
-# filter, which is 84 grid points, but we want an odd number. That means 
-# fx = fy = 85:
-#
+##############################################################################
+# In this section, the issue described at the top of the Makefile is fixed.
+# The workflow is difficult to describe in writing, so a note is made
+# each time a plot is created at a different stage in the workflow.
 
-mask_smooth.grd : mask.grd ../src/smooth 
-	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
+final_mask.grd : new_mask_mul_landmask_add_a.grd
+	gmt grdmath $< DUP 0 GE MUL = $@
 
-#
-# Make a mask where inside the borders = 1, outside = 0 (note that we
-# are not considering the coastline a "border".
-#
+new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
+	gmt grdmath mask_a.grd new_mask_mul_landmask.grd ADD 1 SUB = $@
 
-mask.grd : california.grd
-	gmt grdmath -fg $< 0 GT = $@
+new_mask_mul_landmask.grd : new_mask.grd landmask_land.grd
+	gmt grdmath new_mask.grd landmask_land.grd MUL = $@
+
+new_mask.grd : ca_non_zero.grd landmask_smooth.grd
+	gmt grdmath ca_non_zero.grd DUP NOT landmask_smooth.grd MUL ADD = $@
+
+landmask_smooth.grd : landmask_land.grd ../src/smooth
+	../src/smooth infile=landmask_land.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
+
+mask_a.grd : clipmask_smooth.grd landmask_land.grd
+	gmt grdmath clipmask_smooth.grd landmask_land.grd MUL = $@
+
+clipmask_smooth.grd : clipmask.grd ../src/smooth
+	../src/smooth infile=clipmask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
+
+clipmask.grd : landmask_water.grd ca_non_zero.grd
+	gmt grdmath landmask_water.grd ca_non_zero.grd ADD 0 GT = $@
+
+ca_non_zero.grd : california.grd
+	gmt grdmath $< 0 GT 0 AND = $@
+
 
 ################################################################################################################################3
 # The CA Vs30 is 0 in the oceans and outside CA, and -1 in lakes. First make all -1 vales 600. 
@@ -87,6 +102,12 @@ california.grd : california_SF_bay_1200.grd
 
 california_SF_bay_1200.grd : lakes_600.grd landmask.grd
 	gmt grdmath lakes_600.grd landmask.grd 600 MUL ADD = $@
+
+landmask_land.grd :
+	gmt grdlandmask -V -N0/1/1/1/1 -R$(CA_EXT_REGION) -I$(RES)s -G$@ -Df
+
+landmask_water.grd :
+	gmt grdlandmask -V -N1/0/0/0/0 -R$(CA_EXT_REGION) -I$(RES)s -G$@ -Df
 
 landmask.grd : 
 	gmt grdlandmask -V -R$(CA_EXT_REGION) -I$(RES)s/$(RES)s -G$@ -Df -N1/0/0/0/0
@@ -193,15 +214,15 @@ california.png : california.grd
  
 # Plot the clipping mask:
 
-clipmask.png : mask.grd
-	gmt grdimage mask.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > clipmask.ps
+clipmask.png : clipmask.grd
+	gmt grdimage clipmask.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > clipmask.ps
 	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O >> clipmask.ps
 	gmt psconvert -E$(Eflags) -P -T$(Tflags) clipmask.ps
  
 # Plot the smoothed clipping mask:
 
-landmask_smooth.png : mask_smooth.grd
-	gmt grdimage mask_smooth.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > landmask_smooth.ps
+landmask_smooth.png : landmask_smooth.grd
+	gmt grdimage landmask_smooth.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > landmask_smooth.ps
 	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> landmask_smooth.ps
 	gmt pscoast -J$(Jflags) -R$(CA_EXT_REGION) -Df -O -N1 -N2 -W >> landmask_smooth.ps
 	gmt psconvert -E$(Eflags) -P -T$(Tflags) landmask_smooth.ps

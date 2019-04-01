@@ -92,7 +92,7 @@ clean_plots :
 
 veryclean : $(MKDIRS_VCLEAN)
 
-spotless : veryclean
+spotless : veryclean clean_plots
 	$(RM) global_vs30.grd
 
 $(INSERT_MAPS) :

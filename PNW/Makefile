@@ -15,13 +15,13 @@ IS_COARSER := $(shell [ $(IRES) -gt 20 ] && echo true)
 all : pnw.grd weights.grd
 
 plots : plot_base_map plot_ext_map plot_clip_mask plot_smooth_clip_mask \
-        plot_clip_mask_2 plot_weights plot_final_map_waor plot_final_map_wus
+        plot_mask_a plot_weights plot_final_map_waor plot_final_map_wus
 
 clean : clean_plots
 	$(RM) pnw.grd orwash20c_600.grd waor_$(RES)c.grd north.grd south.grd east.grd \
-              west.grd waor_ext.grd mask.grd \
-              mask_smooth.grd mask_2.grd mask_smooth_2.grd \
-              weights.grd gmt.history landmask.grd
+              west.grd waor_ext.grd \
+              new_mask.grd clipmask* mask_a* landmask* new_* final_mask.grd \
+              weights.grd gmt.history
 
 clean_plots :
 	$(RM) *.ps *.png
@@ -36,20 +36,9 @@ veryclean : clean
 # inside ranging from 0 to 1.0), and then keep only positive values (making 
 # outside = 0, inside ranging from 0 to 1). 
 #
-weights.grd : mask_smooth_2.grd
+
+weights.grd : final_mask.grd
 	gmt grdmath -fg $< 0.5 SUB 2 MUL DUP 0 GT MUL = $@
-
-###############################################################################
-# This is the smoothed grid, but it has anomalies in it from places where 
-# the Vs30 grid is 600 inside the borders.  To fix this, we 
-# re-binary (?) the mask, then smooth it again:
-#
-
-mask_smooth_2.grd : mask_2.grd ../src/smooth
-	../src/smooth infile=mask_2.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
-
-mask_2.grd : mask_smooth.grd
-	gmt grdmath $< 0.5 GE = $@
 
 #################################################################################
 # Smooth the mask. This will blur the border, but we'll fix that in a 
@@ -59,19 +48,44 @@ mask_2.grd : mask_smooth.grd
 # fx = fy = 85:
 #
 
-mask_smooth.grd : mask.grd ../src/smooth
-	../src/smooth infile=mask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
+final_mask.grd : new_mask_mul_landmask_add_a.grd
+	gmt grdmath $< DUP 0 GE MUL = $@
+
+new_mask_mul_landmask_add_a.grd : mask_a.grd new_mask_mul_landmask.grd
+	gmt grdmath mask_a.grd new_mask_mul_landmask.grd ADD 1 SUB = $@
+
+new_mask_mul_landmask.grd : new_mask_2.grd landmask_land.grd
+	gmt grdmath new_mask_2.grd landmask_land.grd MUL = $@
+
+new_mask_2.grd : clipmask.grd landmask_smooth.grd
+	gmt grdmath clipmask.grd DUP NOT landmask_smooth.grd MUL ADD = $@
+
+landmask_smooth.grd : landmask_land.grd ../src/smooth
+	../src/smooth infile=landmask_land.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
+
+mask_a.grd : clipmask_smooth.grd landmask_land.grd
+	gmt grdmath clipmask_smooth.grd landmask_land.grd MUL = $@
+
+clipmask_smooth.grd : clipmask.grd ../src/smooth
+	../src/smooth infile=clipmask.grd fx=$(REGION_FX) fy=$(REGION_FY) outfile=$@
+
 
 ################################################################################
 # The PNW Vs30 is now 600 everywhere outside of known geology. So now we
 # make a mask in which 600 -> 0, and everything else -> 1.
 #
 
-mask.grd : pnw.grd landmask.grd
-	gmt grdmath pnw.grd $(WATER) NEQ landmask.grd MUL = $@
+clipmask.grd : new_mask.grd landmask_water.grd
+	gmt grdmath new_mask.grd landmask_water.grd ADD 0 GT = $@
 
-landmask.grd : 
-	gmt grdlandmask -N0/1/0/1/0 -R$(PNW_EXT_REGION) -I$(RES)s/$(RES)s -G$@
+new_mask.grd : pnw.grd landmask_land.grd
+	gmt grdmath pnw.grd $(WATER) NEQ landmask_land.grd MUL = $@
+
+landmask_water.grd :
+	gmt grdlandmask -V -N1/0/0/0/0 -R$(CA_EXT_REGION) -I$(RES)s -G$@ -Df
+
+landmask_land.grd : 
+	gmt grdlandmask -N0/1/1/1/1 -R$(PNW_EXT_REGION) -I$(RES)s/$(RES)s -G$@
 
 ###############################################################################
 # Rescale to the proper resolution and shift the map to make it co-register
@@ -139,7 +153,7 @@ plot_clip_mask : clipmask.png
 
 plot_smooth_clip_mask : clipmask_smooth.png
 
-plot_clip_mask_2 : clipmask_2.png
+plot_mask_a : mask_a.png
 
 plot_weights : weights.png
 
@@ -174,27 +188,27 @@ ext.png : pnw.grd
 
 # Plot the clipping mask:
  
-clipmask.png : mask.grd
-	gmt grdimage mask.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > clipmask.ps
+clipmask.png : clipmask.grd
+	gmt grdimage clipmask.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > clipmask.ps
 	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> clipmask.ps
 	gmt pscoast -J$(Jflags) -R$(PNW_EXT_REGION) -Df -O -N1 -N2 -W >> clipmask.ps
 	gmt psconvert -E$(Eflags) -P -T$(Tflags) clipmask.ps
  
 # Plot the smoothed clipping mask:
  
-clipmask_smooth.png : mask_smooth.grd
-	gmt grdimage mask_smooth.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > clipmask_smooth.ps
+clipmask_smooth.png : clipmask_smooth.grd
+	gmt grdimage clipmask_smooth.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > clipmask_smooth.ps
 	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> clipmask_smooth.ps
 	gmt pscoast -J$(Jflags) -R$(PNW_EXT_REGION) -Df -O -N1 -N2 -W >> clipmask_smooth.ps
 	gmt psconvert -E$(Eflags) -P -T$(Tflags) clipmask_smooth.ps
  
 # Plot the rescaled clipping mask.
  
-clipmask_2.png : mask_2.grd
-	gmt grdimage mask_2.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > clipmask_2.ps
-	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> clipmask_2.ps
-	gmt pscoast -J$(Jflags) -R$(PNW_EXT_REGION) -Df -O -N1 -N2 -W >> clipmask_2.ps
-	gmt psconvert -E$(Eflags) -P -T$(Tflags) clipmask_2.ps
+mask_a.png : mask_a.grd
+	gmt grdimage mask_a.grd -J$(Jflags) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > mask_a.ps
+	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O -K >> mask_a.ps
+	gmt pscoast -J$(Jflags) -R$(PNW_EXT_REGION) -Df -O -N1 -N2 -W >> mask_a.ps
+	gmt psconvert -E$(Eflags) -P -T$(Tflags) mask_a.ps
  
 # Plot the weights:
  

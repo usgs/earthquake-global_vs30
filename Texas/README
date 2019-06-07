@@ -1,0 +1,26 @@
+The Makfile will create a grid file and a weighted clipping mask suitable 
+for inserting the Texas Vs30 map into the global Vs30 map.  See the Makefile for
+specifics of the processing.
+
+To create the necessary files to display the new Texas Vs30 map, simply type
+
+	% make
+
+in this directory. To insert the new Texas map into a global Vs30 map,
+return to the top level directory and type
+
+	% make
+
+To create the plots, type
+
+	% make plots
+
+To clean things up, type
+
+	% make clean
+
+Or just
+
+	% make clean_plots
+
+to only remove the plots.

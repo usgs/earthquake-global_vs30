@@ -4,20 +4,28 @@
 
 include ~/.vs30/Constants.mk
 
+GRNLND_WEST = -73.0833333333
+GRNLND_EAST = -12.125
+GRNLND_NORTH = 83.675
+GRNLND_SOUTH = 59.725
+
+GRNLND_REGION = $(GRNLND_WEST)/$(GRNLND_EAST)/$(GRNLND_SOUTH)/$(GRNLND_NORTH)
+
+GLOBAL_WEST = -180
+GLOBAL_EAST = 180
+GLOBAL_NORTH = 84
+GLOBAL_SOUTH = -56
+
 .PHONY: all clean veryclean
 
-all : global_vs30.grd
-
-global_vs30.grd : global_grad.grd global_landmask.grd cratons_smooth.grd \
-                  ../src/grad2vs30
-	../src/grad2vs30 gradient_file=global_grad.grd craton_file=cratons_smooth.grd landmask_file=global_landmask.grd output_file=global_vs30.grd water=$(WATER)
+all : new_global_vs30.grd
 
 plots : plot_cratons plot_cratons_smooth plot_global_topo plot_global_vs30
 
 clean : clean_plots
 	$(RM) cratons.bil cratons.prj cratons.hdr cratons.grd cratons_smooth.grd \
               global_landmask.grd elev/gmted_global.bil gmted_global.grd \
-              global_grad.grd cratons_pixel.grd gmt.history
+              global_grad.grd global_vs30_no_greenland.grd cratons_pixel.grd gmt.history
 
 clean_plots:
 	$(RM) *.ps *.png
@@ -28,6 +36,46 @@ veryclean : clean clean_plots
 	$(RM) global_vs30.grd
 
 #######################
+#
+# Edit the map to make Greenland 601 m/s. This used to be a post-processing step.
+#
+
+
+new_global_vs30.grd : global_vs30_no_greenland.grd grnlnd_nan.grd
+	gmt grdmath grnlnd_nan.grd global_vs30_no_greenland.grd AND = $@
+
+grnlnd_nan.grd : grnlnd_nan_wns.grd east_nan.grd
+	gmt grdpaste grnlnd_nan_wns.grd east_nan.grd -G$@
+grnlnd_nan_wns.grd : grnlnd_nan_ns.grd west_nan.grd
+	gmt grdpaste grnlnd_nan_ns.grd west_nan.grd -G$@
+grnlnd_nan_ns.grd : grnlnd_nan_s.grd north_nan.grd
+	gmt grdpaste grnlnd_nan_s.grd north_nan.grd -G$@
+grnlnd_nan_s.grd : grnlnd_601_edit.grd south_nan.grd
+	gmt grdpaste grnlnd_601_edit.grd south_nan.grd -G$@
+
+west_nan.grd :
+	gmt grdmath -R$(GLOBAL_WEST)/$(GRNLND_WEST)/$(GLOBAL_SOUTH)/$(GLOBAL_NORTH) -I$(RES)s/$(RES)s 0 0 NAN = $@
+east_nan.grd :
+	gmt grdmath -R$(GRNLND_EAST)/$(GLOBAL_EAST)/$(GLOBAL_SOUTH)/$(GLOBAL_NORTH) -I$(RES)s/$(RES)s 0 0 NAN = $@
+north_nan.grd :
+	gmt grdmath -R$(GRNLND_WEST)/$(GRNLND_EAST)/$(GRNLND_NORTH)/$(GLOBAL_NORTH) -I$(RES)s/$(RES)s 0 0 NAN = $@
+south_nan.grd :
+	gmt grdmath -R$(GRNLND_WEST)/$(GRNLND_EAST)/$(GLOBAL_SOUTH)/$(GRNLND_SOUTH) -I$(RES)s/$(RES)s 0 0 NAN = $@
+
+
+grnlnd_601_edit.grd : grnlnd_601.grd
+	gmt grdedit $< -A -R$(GRNLND_REGION) -G$@
+
+grnlnd_601.grd : greenland_elev.grd
+	gmt grdmath $< -R$(GRNLND_REGION) -11 GT 601 MUL = $@
+
+# 
+# Create the global slope-based Vs30 map.
+#
+global_vs30_no_greenland.grd : global_grad.grd global_landmask.grd cratons_smooth.grd \
+                  ../src/grad2vs30
+	../src/grad2vs30 gradient_file=global_grad.grd craton_file=cratons_smooth.grd landmask_file=global_landmask.grd output_file=global_vs30_no_greenland.grd water=$(WATER)
+
 #
 # Create the slope file from the DEM (the -G option isn't necessary on 
 # newer versions of GMT):

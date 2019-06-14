@@ -18,14 +18,14 @@ GLOBAL_SOUTH = -56
 
 .PHONY: all clean veryclean
 
-all : new_global_vs30.grd greenland.grd
+all : global_vs30.grd
 
 plots : plot_cratons plot_cratons_smooth plot_global_topo plot_global_vs30
 
 clean : clean_plots
 	$(RM) cratons.bil cratons.prj cratons.hdr cratons.grd cratons_smooth.grd \
               global_landmask.grd elev/gmted_global.bil gmted_global.grd \
-              *_nan*grd grnlnd* greenland.grd \
+              *_nan*grd grnlnd* greenland.grd greenland_landmask.grd \
               global_grad.grd global_vs30_no_greenland.grd cratons_pixel.grd *.aux.xml gmt.history
 
 clean_plots:
@@ -38,10 +38,18 @@ veryclean : clean clean_plots
 
 ###################################################################################
 # Edit the map to make Greenland 601 m/s. This used to be a post-processing step.
+# The DENAN command replaces all NaNs with the global map, and otherwise uses
+# our new Greenland map.  
 #
 
-new_global_vs30.grd : global_vs30_no_greenland.grd grnlnd_nan.grd
-	gmt grdmath grnlnd_nan.grd global_vs30_no_greenland.grd AND = $@
+global_vs30.grd : global_vs30_no_greenland.grd grnlnd_nan.grd
+	gmt grdmath grnlnd_nan.grd global_vs30_no_greenland.grd DENAN = $@
+
+
+###################################################################################
+# Create blocks on NaNs on each side of the Greenland mask. This is tedious but
+# it's an easy way to overlay it on the global map.
+#
 
 grnlnd_nan.grd : grnlnd_nan_wns.grd east_nan.grd
 	gmt grdpaste grnlnd_nan_wns.grd east_nan.grd -G$@
@@ -49,8 +57,8 @@ grnlnd_nan_wns.grd : grnlnd_nan_ns.grd west_nan.grd
 	gmt grdpaste grnlnd_nan_ns.grd west_nan.grd -G$@
 grnlnd_nan_ns.grd : grnlnd_nan_s.grd north_nan.grd
 	gmt grdpaste grnlnd_nan_s.grd north_nan.grd -G$@
-grnlnd_nan_s.grd : greenland.grd south_nan.grd
-	gmt grdpaste greenland.grd south_nan.grd -G$@
+grnlnd_nan_s.grd : grnlnd_combo.grd south_nan.grd
+	gmt grdpaste grnlnd_combo.grd south_nan.grd -G$@
 
 west_nan.grd :
 	gmt grdmath -R$(GLOBAL_WEST)/$(GRNLND_WEST)/$(GLOBAL_SOUTH)/$(GLOBAL_NORTH) -I$(RES)s/$(RES)s 0 0 NAN = $@
@@ -61,24 +69,29 @@ north_nan.grd :
 south_nan.grd :
 	gmt grdmath -R$(GRNLND_WEST)/$(GRNLND_EAST)/$(GLOBAL_SOUTH)/$(GRNLND_SOUTH) -I$(RES)s/$(RES)s 0 0 NAN = $@
 
+############################################################################################
+# This mask covers all of Greenland. It was originally a shape
+# file that was converted to a grid, using gdal_rasterize (to .bil)
+# and gdal_translate (to .grd) as is done even further below 
+# with cratons. 
+#
+# I then make anything INSIDE the mask 1, and anything outside
+# the mask NaN.
+# 
+# Then, make a landmask where all land is 1 and water is 0 (for the Greenland region).
+#
+# Finally, make the combo grid, where all land in Greenland is 601, and eveything
+# outside of Greenland (land and water) is NaN. Those NaNs will be replaced above.
+#
 
-#grnlnd_601_edit.grd : grnlnd_601.grd
-#	gmt grdedit $< -A -R$(GRNLND_REGION) -G$@
+grnlnd_combo.grd : greenland_landmask.grd greenland.grd
+	gmt grdmath greenland_landmask.grd greenland.grd MUL 0 NAN 601 MUL = $@
 
-#grnlnd_601.grd : greenland_elev.grd
-#	gmt grdmath $< -R$(GRNLND_REGION) -11 GT 601 MUL = $@
-
+greenland_landmask.grd :
+	gmt grdlandmask -G$@ -I$(RES)s/$(RES)s -R$(GRNLND_REGION) -N0/1/0/1/0 -Df
 
 greenland.grd : greenland_mask.grd
-	gmt grdmath $< 0 NAN 601 MUL -R$(GRNLND_REGION) = $@
-
-greenland_mask.grd : greenland.bil
-	gmt xyz2grd -R-80/-4/56/86 -I$(RES)s/$(RES)s -ZTLc -r $< -Ggreenland_mask.grd
-	gmt grdsample greenland_mask.grd -G$@ -T -fg -nn
-
-greenland.bil : greenlandclip.shp
-	$(GDAL_PATH)/gdal_rasterize -burn 1 -of EHdr -init 0 -te -80 56 -4 86 -tr $(RES_DD) $(RES_DD) -ot Byte $< $@
-
+	gmt grdmath $< 0 NAN -R$(GRNLND_REGION) = $@
 
 
 ################################################
@@ -201,7 +214,7 @@ Tflags = g		# Output png. Use f for pdf, j for jpg
 Sflags = 128/128/255	# Fill wet areas with this color.
 Aflags = 1000/0/2	# Don't plot things smaller than 1000 km^2
 Rflags1 = -180/180/-56/72	# Larger region to plot
-Rflags2 = -130/-48/12/50	# Smaller region to plot
+Rflags2 = $(GRNLND_REGION)	# Smaller region to plot
 Cflags1 = ../Misc/tan.cpt	# Location of tan cpt
 Cflags2 = ../Misc/global.cpt	# Location of global cpt
 
@@ -212,8 +225,8 @@ cratons.png : cratons.grd
 	gmt psconvert -E$(Eflags) -P -T$(Tflags) cratons.ps
 
 cratons_smooth.png : cratons_smooth.grd
-	gmt grdimage cratons_smooth.grd -J$(Jflags) -R$(Rflags2) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > cratons_smooth.ps
-	gmt pscoast -J$(Jflags) -R$(Rflags2) -Df -N1 -N2 -W -S$(Sflags) -A$(Aflags) -O -K >> cratons_smooth.ps
+	gmt grdimage cratons_smooth.grd -J$(Jflags) -R$(Rflags1) -C$(NEW_WEIGHTS_CPT) -B$(Bflags) -K > cratons_smooth.ps
+	gmt pscoast -J$(Jflags) -R$(Rflags1) -Df -N1 -N2 -W -S$(Sflags) -A$(Aflags) -O -K >> cratons_smooth.ps
 	gmt psscale -D$(Dflags) -L -C$(NEW_WEIGHTS_CPT) -O >> cratons_smooth.ps
 	gmt psconvert -E$(Eflags) -P -T$(Tflags) cratons_smooth.ps
 

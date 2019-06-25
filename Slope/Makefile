@@ -16,6 +16,8 @@ GLOBAL_EAST = 180
 GLOBAL_NORTH = 84
 GLOBAL_SOUTH = -56
 
+IS_FINER := $(shell [ $(IRES) -lt 30 ] && echo true)
+
 .PHONY: all clean veryclean
 
 all : global_vs30.grd
@@ -25,7 +27,7 @@ plots : plot_cratons plot_cratons_smooth plot_global_topo plot_global_vs30
 clean : clean_plots
 	$(RM) cratons.bil cratons.prj cratons.hdr cratons.grd cratons_smooth.grd \
               global_landmask.grd elev/gmted_global.bil gmted_global.grd \
-              *_nan*grd grnlnd* greenland.grd greenland_landmask.grd \
+              *_nan*grd grnlnd* greenland.grd greenland_mask_$(RES)c.grd greenland_landmask.grd \
               global_grad.grd global_vs30_no_greenland.grd cratons_pixel.grd *.aux.xml gmt.history
 
 clean_plots:
@@ -90,9 +92,20 @@ grnlnd_combo.grd : greenland_landmask.grd greenland.grd
 greenland_landmask.grd :
 	gmt grdlandmask -G$@ -I$(RES)s/$(RES)s -R$(GRNLND_REGION) -N0/1/0/1/0 -Df
 
-greenland.grd : greenland_mask.grd
+greenland.grd : greenland_mask_$(RES)c.grd
 	gmt grdmath $< 0 NAN -R$(GRNLND_REGION) = $@
 
+############################################################################################
+# Check resolution of the final map. Sample or filter greenland_mask.grd accordingly.
+#
+
+ifeq ($(IS_FINER),true)
+greenland_mask_$(RES)c.grd : greenland_mask.grd
+	gmt grdsample -nl+t0.1 -I$(RES)s -fg $< -G$@
+else
+greenland_mask_$(RES)c.grd : greenland_mask.grd
+	cp $< $@
+endif
 
 ################################################
 # Create the global slope-based Vs30 map.

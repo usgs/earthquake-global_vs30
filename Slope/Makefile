@@ -28,7 +28,8 @@ clean : clean_plots
 	$(RM) cratons.bil cratons.prj cratons.hdr cratons.grd cratons_smooth.grd \
               global_landmask.grd elev/gmted_global.bil gmted_global.grd \
               *_nan*grd grnlnd* greenland.grd greenland_mask_$(RES)c.grd greenland_landmask.grd \
-              global_grad.grd global_vs30_no_greenland.grd cratons_pixel.grd *.aux.xml gmt.history
+              global_grad.grd global_vs30_no_greenland.grd cratons_pixel.grd *.aux.xml gmt.history \
+              cratons_west*
 
 clean_plots:
 	$(RM) *.ps *.png

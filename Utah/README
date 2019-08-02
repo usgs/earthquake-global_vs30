@@ -4,7 +4,8 @@ See the Makefile for specifics of the processing.
 
 Note this is a good example for adding a region that is completely landlocked. 
 The complicated workflow for not smoothing coastlines is not needed. The only 
-thing we add here is a "buffer zone" around the region, which helps with smoothing.
+thing we add here is a "buffer zone" around the region of the originally provided
+grid file, which helps with smoothing.
 
 To create the necessary files to display the new Utah Vs30 map, simply type
 

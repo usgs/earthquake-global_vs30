@@ -1,5 +1,5 @@
 Programs for manipulating GMT grd files. To make, edit the file called
-Constants.mk in the top-level directory and set the paths to the library 
+Constants.mk in ~/.vs30/ directory and set the paths to the library 
 directories for GMT and NetCDF, and for the include directory for GMT, 
 then run make:
 

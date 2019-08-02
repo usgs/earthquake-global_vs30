@@ -2,4 +2,19 @@ To make the global slope-based Vs30 map, simply run make:
 
 	% make
 
-in this directory. 
+in this directory. Note that as part of the workflow, 
+Greenland is pre-processed to a uniform value of 601 m/s. 
+This is simply to make it a unique value, since the topographic
+slope-based method doesn't do well in such a large flat (ice-covered)
+area. This value can obviously be changed or even removed from the 
+workflow, if needed.
+
+If the 7.5 arcsecond resolution map is desired, the user 
+should update their Constants.mk file ("RES" variable), and 
+then in this directory run:
+
+	% bash 75_commands.bash
+
+to create the global topographic slope-based Vs30 map. This
+step does not include the Greenland pre-processing fix, but 
+can be added.

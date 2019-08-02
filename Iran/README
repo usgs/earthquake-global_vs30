@@ -7,11 +7,11 @@ caused by differences in the way the map was made compared to the way
 gmt's grdlandmask command works. In this case, the authors of the map
 gave two small lakes NaN values - consistent with their other use of NaN
 for all water (oceans, lakes, etc.). However, grdlandmask does not recognize
-these two lakes, so we manually fix it. That workflow is described below.
+these two lakes, so we manually fix it. That workflow is described in the Makefile.
 
 Please note this also uses the "coastline" methodology since some small parts
 of Iran touch the coast. If that is the case for your region, you will need
-to do the same for accurate values near oceans. 
+to do the same for accurate values near oceans.
 
 To create the necessary files to display the new Iran Vs30 map, simply type
 

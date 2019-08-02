@@ -10,7 +10,9 @@ First, build the global slope-based grid by typing
 
 	% make
 
-in the top level directory. Then, switch into this directory (Amplification/Slope_Amplification) and type
+in the top level directory (note, you can also do this quicker by just 
+typing % make in the Slope directory). Then, switch into this directory 
+(Amplification/Slope_Amplification) and type
 
 	% make
 

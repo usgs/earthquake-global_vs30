@@ -1,10 +1,10 @@
 The Makfile will create a grid file and a weighted clipping mask suitable for inserting the
-Italy Vs30 map into the global Vs30 map. Perhaps just behind Greece, is a good Makefile to look at to understand
-the workflow for regions with coastlines. This one is a bit more complicated than
-Greece because it "fixes" (similar to the lakes in the Iran map) two problem spots.
-One spot is Venice, where there is a discrepancy between grdlandmask and the way
-the authors created the map (explained below), and the other is a small, square
-region in Sardinia where the authors did not fill in Vs30 values.
+Italy Vs30 map into the global Vs30 map. Perhaps just behind Greece, this is a good Makefile 
+to look at to understand the workflow for regions with coastlines. This one is a bit more 
+complicated than Greece because it "fixes" (similar to the lakes in the Iran map) two problem 
+spots. One spot is Venice, where there is a discrepancy between grdlandmask and the way
+the authors created the map (explained in Makefile), and the other is a small, square
+region in Sardinia where the authors did not include any Vs30 values.
 
 To create the necessary files to display the new Italy Vs30 map, simply type
 
@@ -15,7 +15,8 @@ return to the top level directory and type
 
 	% make
 
-Similar to Greece, to understand the workflow for coastal regions by viewing the intermediate steps, type
+Similar to Greece, to better understand the workflow for coastal regions by viewing 
+the intermediate steps, type
 
 	% make plots
 

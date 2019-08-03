@@ -4,7 +4,7 @@ Makefile, so it can only be made (and cleaned) here. Further description can be
 found in the top level README.md file. Current runtime on a standard 
 workstation is approximately 25 minutes.
 
-First, build the global grid by typing 
+First, build the global hybrid grid by typing 
 
 	% make
 

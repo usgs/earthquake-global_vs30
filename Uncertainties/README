@@ -1,0 +1,14 @@
+This directory calculates uncertainties in Vs30 for every
+location in the slope-based and hybrid global maps. 
+
+The relationship used to calculate uncertainties in the slope-based
+areas is described in Seyhan et al., 2014. 
+
+The relationships used to calculate uncertainties in the hybrid map
+are unique to each region, and sometimes unknown or unconfirmed by 
+the author of the regional map. Those relationships that are known
+include:
+
+XXX - ;asodnf
+XXX -a;ksdjn
+XXX - a;sfn 

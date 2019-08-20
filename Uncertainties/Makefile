@@ -1,6 +1,6 @@
-# This Makefile creates a ratio map of hybrid/slope Vs30 values. 
-
-# This will eventually work for all periods and PGA/PGV
+# This Makefile creates the topographic slope-based uncertainty map
+# and overlays the regional uncertainty maps - where available - over
+# it.
 
 include ~/.vs30/Constants.mk
 
@@ -50,25 +50,19 @@ global_uncert_ca.grd : cali_sd_zeros.grd vs30_slope_uncert.grd landmask_land.grd
 
 cali_sd_zeros.grd : cali_sd_n_s_e.grd west.grd
 	gmt grdpaste west.grd cali_sd_n_s_e.grd -G$@
-
 cali_sd_n_s_e.grd : cali_sd_n_s.grd east.grd
 	gmt grdpaste cali_sd_n_s.grd east.grd -G$@
-
 cali_sd_n_s.grd : cali_sd_n.grd south.grd
 	gmt grdpaste cali_sd_n.grd south.grd -G$@
-
 cali_sd_n.grd : cali_sd.grd north.grd
 	gmt grdpaste cali_sd.grd north.grd -G$@
 
 north.grd :
 	gmt grdmath -R$(ZEROS_N) -I$(RES)s/$(RES)s 0 1 NAN = $@
-
 south.grd :
 	gmt grdmath -R$(ZEROS_S) -I$(RES)s/$(RES)s 0 1 NAN = $@
-
 west.grd :
 	gmt grdmath -R$(ZEROS_W) -I$(RES)s/$(RES)s 0 1 NAN = $@
-
 east.grd :
 	gmt grdmath -R$(ZEROS_E) -I$(RES)s/$(RES)s 0 1 NAN = $@
 

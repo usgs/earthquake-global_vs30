@@ -21,11 +21,13 @@ ZEROS_S = $(CA_WEST)/$(CA_EAST)/-56/$(CA_SOUTH)
 
 GREECE_REGION = 16.5/31.5/34/43
 
+TAIWAN_REGION = 116/125/20.5/26.5
+
 IS_COARSER := $(shell [ $(IRES) -gt 7 ] && echo true)
 
-all :  vs30_slope_uncert.grd global_uncert_ca_gr.grd
+all :  vs30_slope_uncert.grd global_uncert_ca_gr_tw.grd taiwan_uncert.grd
 
-plots : global_uncert_ca vs30_slope_uncert cali_sd global_uncert_ca_gr
+plots : global_uncert_ca vs30_slope_uncert cali_sd global_uncert_ca_gr global_uncert_ca_gr_tw
 
 clean : clean_plots
 	$(RM) vs30_slope_uncert.grd global_uncert_ca*.grd landmask_land.grd cali_weight.grd \
@@ -36,6 +38,31 @@ clean_plots :
 	$(RM) *.ps *.png *.pdf
 
 veryclean : clean
+
+##################################################################
+# Insert Taiwan using insert_grd. 
+
+global_uncert_ca_gr_tw.grd : ../src/insert_grd global_uncert_ca_gr.grd taiwan_full_uncert.grd tw_weights.grd
+	../src/insert_grd gin=global_uncert_ca_gr.grd gout=$@ grid1=taiwan_full_uncert.grd gmask1=tw_weights.grd
+
+##################################################################
+# Now for the Taiwan map.
+#
+# The .xy file was created using the uncertainty values in the 
+# electronic supplement of Kwok et al., 2018. The "background"
+# value is 0.4 - consistent with Greece.
+
+tw_weights.grd : taiwan_full_uncert.grd
+	gmt grdmath $< 0 GT 0 DENAN = $@
+
+taiwan_full_uncert.grd : tw_gridline.grd taiwan_uncert.grd
+	gmt grdmath tw_gridline.grd 0 GT 0.4 MUL taiwan_uncert.grd EXCH DENAN 0 DENAN = $@
+
+tw_gridline.grd : ../Taiwan/$(TW_GRD_FILE)
+	gmt grdsample -nl+t0.1 -I$(RES)s -fg -T $< -G$@
+
+taiwan_uncert.grd : taiwan_uncert.xy
+	gmt xyz2grd -G$@ $< -I30s -R119/123/21/26
 
 ##################################################################
 # This time I used insert_grd to insert new Greece map - worked 
@@ -144,6 +171,8 @@ cali_sd : cali_sd.png
 
 global_uncert_ca_gr : global_uncert_ca_gr.png
 
+global_uncert_ca_gr_tw : global_uncert_ca_gr_tw.png
+
 # Set some initial flags for plotting. Edit these to change the plotting specs for
 # every map below, or just edit them individually lower down. 
 
@@ -188,4 +217,10 @@ global_uncert_ca_gr.png : global_uncert_ca_gr.grd
 	gmt pscoast -R$(GREECE_REGION) -J$(Jflags1) -B -Df -S$(Sflags) -X$(Xflags) -Y$(Yflags) -O -K >> global_uncert_ca_gr.ps
 	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(Cflags) -O >> global_uncert_ca_gr.ps
 	gmt psconvert -E$(Eflags2) -P -T$(Tflags) global_uncert_ca_gr.ps
+
+global_uncert_ca_gr_tw.png : global_uncert_ca_gr_tw.grd
+	gmt grdimage $< -J$(Jflags1) -R$(TAIWAN_REGION) -C$(Cflags) -B$(Bflags3) -X$(Xflags) -Y$(Yflags) -K > global_uncert_ca_gr_tw.ps
+	gmt pscoast -R$(TAIWAN_REGION) -J$(Jflags1) -B -Df -S$(Sflags) -X$(Xflags) -Y$(Yflags) -O -K >> global_uncert_ca_gr_tw.ps
+	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(Cflags) -O >> global_uncert_ca_gr_tw.ps
+	gmt psconvert -E$(Eflags2) -P -T$(Tflags) global_uncert_ca_gr_tw.ps
 	rm gmt.history

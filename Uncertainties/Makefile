@@ -25,14 +25,14 @@ TAIWAN_REGION = 116/125/20.5/26.5
 
 IS_COARSER := $(shell [ $(IRES) -gt 7 ] && echo true)
 
-all :  vs30_slope_uncert.grd global_uncert_ca_gr_tw.grd taiwan_uncert.grd
+all :  vs30_slope_uncert.grd global_uncert_ca_gr_tw.grd
 
 plots : global_uncert_ca vs30_slope_uncert cali_sd global_uncert_ca_gr global_uncert_ca_gr_tw
 
 clean : clean_plots
 	$(RM) vs30_slope_uncert.grd global_uncert_ca*.grd landmask_land.grd cali_weight.grd \
         greece_uncert.grd greece_full_uncert.grd gr_weights.grd north.grd south.grd east.grd west.grd \
-        cali_sd* gmt.history
+        tw_gridline.grd taiwan_uncert.grd taiwan_full_uncert.grd tw_weights.grd cali_sd* gmt.history
 
 clean_plots : 
 	$(RM) *.ps *.png *.pdf
@@ -189,9 +189,9 @@ Tflags = g		# png
 Eflags1 = 300		# dpi
 
 vs30_slope_uncert.png : vs30_slope_uncert.grd
-	gmt grdimage $< -J$(Jflags1) -R$(SMALLER_REGION) -C$(Cflags) -B$(Bflags1) -X$(Xflags) -Y$(Yflags) -K > vs30_slope_uncert.ps
+	gmt grdimage $< -J$(Jflags1) -R$(SMALLER_REGION) -C$(UNCERT_CPT) -B$(Bflags1) -X$(Xflags) -Y$(Yflags) -K > vs30_slope_uncert.ps
 	gmt pscoast -R$(SMALLER_REGION) -J$(Jflags1) -B -Df -S$(Sflags) -X$(Xflags) -Y$(Yflags) -O -K >> vs30_slope_uncert.ps
-	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(Cflags) -O >> vs30_slope_uncert.ps
+	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(UNCERT_CPT) -O >> vs30_slope_uncert.ps
 	gmt psconvert -E$(Eflags1) -P -T$(Tflags) vs30_slope_uncert.ps
 
 Jflags2 = M6i
@@ -199,28 +199,28 @@ Bflags2 = a10f5
 Eflags2 = 1080
 
 global_uncert_ca.png : global_uncert_ca.grd
-	gmt grdimage $< -J$(Jflags1) -R$(SMALLER_REGION) -C$(Cflags) -B$(Bflags2) -X$(Xflags) -Y$(Yflags) -K > global_uncert_ca.ps
+	gmt grdimage $< -J$(Jflags1) -R$(SMALLER_REGION) -C$(UNCERT_CPT) -B$(Bflags2) -X$(Xflags) -Y$(Yflags) -K > global_uncert_ca.ps
 	gmt pscoast -R$(SMALLER_REGION) -J$(Jflags1) -B -Df -S$(Sflags) -X$(Xflags) -Y$(Yflags) -O -K >> global_uncert_ca.ps
-	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(Cflags) -O >> global_uncert_ca.ps
+	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(UNCERT_CPT) -O >> global_uncert_ca.ps
 	gmt psconvert -E$(Eflags2) -P -T$(Tflags) global_uncert_ca.ps
 
 cali_sd.png : cali_sd.grd
-	gmt grdimage $< -J$(Jflags2) -R$(CALI_REGION) -C$(Cflags) -B$(Bflags2) -X$(Xflags) -Y$(Yflags) -K > cali_sd.ps
+	gmt grdimage $< -J$(Jflags2) -R$(CALI_REGION) -C$(UNCERT_CPT) -B$(Bflags2) -X$(Xflags) -Y$(Yflags) -K > cali_sd.ps
 	gmt pscoast -R$(CALI_REGION) -J$(Jflags2) -B -S$(Sflags) -Df -Ia/$(Sflags) -X$(Xflags) -Y$(Yflags) -O -K >> cali_sd.ps
-	gmt psscale -D$(Dflags) -B$(Bflags2) -C$(Cflags) -O >> cali_sd.ps
+	gmt psscale -D$(Dflags) -B$(Bflags2) -C$(UNCERT_CPT) -O >> cali_sd.ps
 	gmt psconvert -E$(Eflags2) -P -T$(Tflags) cali_sd.ps
 
 Bflags3 = a5f1
 
 global_uncert_ca_gr.png : global_uncert_ca_gr.grd
-	gmt grdimage $< -J$(Jflags1) -R$(GREECE_REGION) -C$(Cflags) -B$(Bflags3) -X$(Xflags) -Y$(Yflags) -K > global_uncert_ca_gr.ps
+	gmt grdimage $< -J$(Jflags1) -R$(GREECE_REGION) -C$(UNCERT_CPT) -B$(Bflags3) -X$(Xflags) -Y$(Yflags) -K > global_uncert_ca_gr.ps
 	gmt pscoast -R$(GREECE_REGION) -J$(Jflags1) -B -Df -S$(Sflags) -X$(Xflags) -Y$(Yflags) -O -K >> global_uncert_ca_gr.ps
-	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(Cflags) -O >> global_uncert_ca_gr.ps
+	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(UNCERT_CPT) -O >> global_uncert_ca_gr.ps
 	gmt psconvert -E$(Eflags2) -P -T$(Tflags) global_uncert_ca_gr.ps
 
 global_uncert_ca_gr_tw.png : global_uncert_ca_gr_tw.grd
-	gmt grdimage $< -J$(Jflags1) -R$(TAIWAN_REGION) -C$(Cflags) -B$(Bflags3) -X$(Xflags) -Y$(Yflags) -K > global_uncert_ca_gr_tw.ps
+	gmt grdimage $< -J$(Jflags1) -R$(TAIWAN_REGION) -C$(UNCERT_CPT) -B$(Bflags3) -X$(Xflags) -Y$(Yflags) -K > global_uncert_ca_gr_tw.ps
 	gmt pscoast -R$(TAIWAN_REGION) -J$(Jflags1) -B -Df -S$(Sflags) -X$(Xflags) -Y$(Yflags) -O -K >> global_uncert_ca_gr_tw.ps
-	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(Cflags) -O >> global_uncert_ca_gr_tw.ps
+	gmt psscale -D$(Dflags) -B$(Bflags1a) -C$(UNCERT_CPT) -O >> global_uncert_ca_gr_tw.ps
 	gmt psconvert -E$(Eflags2) -P -T$(Tflags) global_uncert_ca_gr_tw.ps
 	rm gmt.history

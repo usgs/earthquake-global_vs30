@@ -12,3 +12,13 @@ include:
 California - Thompson et al., 2014
 Greece - Stewart et al., 2014
 Taiwan - Kwok et al., 2018
+
+To create the hybrid uncertainties map, simply type 
+
+	% make
+
+in this directory. To create the associated plots, type
+
+	% make plots
+
+in this directory. 

@@ -1,6 +1,6 @@
 # This Makefile creates the topographic slope-based uncertainty map
 # and overlays the regional uncertainty maps - where available - over
-# it. So far we have California and Greece.
+# it. So far we have California, Greece, and Taiwan.
 
 include ~/.vs30/Constants.mk
 
@@ -107,9 +107,9 @@ global_uncert_ca.grd : cali_sd_zeros.grd vs30_slope_uncert.grd landmask_land.grd
 # adds a small border without the blending step?
 #
 # Second side note, after using insert_grd on the Greece map
-# above that seems to not be the case (and the border is 
+# above, that seems to not be the case (and the border is 
 # still present after inserting California with this method
-# below). So, probably will rewrite to use insert_grd for
+# below). So, probably I will rewrite to use insert_grd for
 # all of the maps at once at the end.
 
 cali_sd_zeros.grd : cali_sd_n_s_e.grd west.grd
@@ -150,6 +150,8 @@ endif
 
 ##################################################################################
 # Make the Vs30 slope-based Uncertainty map based on Seyhan et al., 2014.
+# The global_grad.grd file must exist. One easy way to make it is by going into
+# the slope directory and typing % make.
 
 vs30_slope_uncert.grd : ../Slope/global_grad.grd
 	gmt grdmath $< 0.0022 GE 0.23 MUL 0.2 ADD = $@

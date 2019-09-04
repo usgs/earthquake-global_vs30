@@ -191,6 +191,19 @@ the hybrid map for the globe) and the grid by the same name in the ./Slope direc
 Vs30 map for the globe). Once the prerequisite grids are created, simply refer to the READMEs in the respective 
 directories for instructions on creating the final ratio maps. 
 
+UNCERTAINTIES
+==================
+Certain regions include calculated uncertainties associated with assigned Vs30 values. These uncertainties
+are presented in terms of the natural log standard deviation of Vs30. Currently, the region for which an uncertainty
+map was provided includes only California. Using the suggested site-specific criteria from Stewart et al. (2014),
+additional uncertainty maps were computed for Greece and Taiwan. Where region-specific uncertainty values are
+unavailable, a slope-based uncertainty value is calculated according to the relationship described in 
+Seyhan et al. (2014). Uncertainty maps can be generated in ~/Vs30/earthquake-global_vs30/Uncertainties. The only
+dependency is that the Slope-based global Vs30 map must already exist, which can be done by going into the Slope
+directory and typing % make, or by creating the global hybrid Vs30 map (typing % make in the top-level directory).
+The uncertainty map is generated as a stand-alone product (i.e., it is not created in the process of making the
+global hybrid Vs30 map). For more information, please read the README in the Uncertainties directory.
+
 ACKNOWLEGEMENTS
 ---------------
 The California map was provided by Eric Thompson and based on the map

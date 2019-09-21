@@ -1,6 +1,10 @@
 #
 # Project-wide constants for Makefiles
 #
+# **** MAKE A COPY OF YOUR PREVIOUS CONSTANTS.MK FILE
+# BEFORE REPLACING IT WITH THIS ONE. OTHERWISE YOU WILL
+# HAVE TO FIND THE CDFLIB, CDFINC, ETC. PATHS AGAIN.
+#
 # Edit this file as needed to produce the maps you want.
 #
 
@@ -8,6 +12,7 @@
 # Set these to the directories where libnetcdf, the CDF include file,
 # libgmt, and the GMT include files reside, respectively.
 #
+
 CDFLIB  = /usr/local/lib
 CDFINC  = /usr/local/include
 GMTLIB  = /usr/local/lib
@@ -18,12 +23,14 @@ GMTINC  = /usr/local/include
 # can easily install it with a package manager, or it can be had 
 # from http://curl.haxx.se.
 #
+
 CURL=curl
 
 #
 # The path leading to the gdal binaries -- in particular,
 # gdal_rasterize and gdal_translate
 #
+
 GDAL_PATH=/opt/local/bin
 
 #
@@ -34,6 +41,7 @@ GDAL_PATH=/opt/local/bin
 #
 # STATIC = -static
 #
+
 STATIC =
 
 #
@@ -50,7 +58,7 @@ STATIC =
 # clean up as you go).
 #
 # NOTE: If you try to make the 7.5c map and run into memory problems
-# (and you very likely will), see the file "commands_75.txt" in the 
+# (and you very likely will), see the file "75_commands.bash" in the 
 # Slope directory for a way to make the map in two pieces and then
 # stitch it together. If that's still too big for your machine, you
 # can follow the pattern there and split the map into four or more

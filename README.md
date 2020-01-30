@@ -235,9 +235,12 @@ is developed in Karimzadeh et al. (2017).
 The Greece map is provided by Kiriaki Konstantinidou of the Earthquake Planning and 
 Protection Organization (EPPO), and can be referenced at Stewart et al. (2014).
 
-The New Zealand map is provided by Destegul et al. (2008).
+The New Zealand map is provided by Destegul et al. (2009).
 
 The Texas map is provided by Ellen Rathje and Meibai Li at the University of Texas (2019).
+
+The global stable vs. active map file is modified from Schulte and Mooney (2005)
+with further modification in the continental United States per Petersen et al. (2019).
 
 The getpar library was created by Robert W. Clayton of the California
 Institute of Technology, and later amended by several others (see

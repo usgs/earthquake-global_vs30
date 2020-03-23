@@ -29,8 +29,7 @@ INSERT_MAPS = Slope \
                           Australia \
                                  Italy \
                                  Iran \
-                                 Greece \
-                                        Colombia
+                                 Greece
 #
 # This should be a complete list of subdirectories so that
 # the clean and veryclean targets can do their thing. Add
@@ -49,8 +48,7 @@ MKDIRS = src \
                         Australia \
                                Italy \
                                Iran \
-                               Greece \
-                                       Colombia
+                               Greece
 
 MKDIRS_CLEAN = $(patsubst %,%.clean,$(MKDIRS))
 MKDIRS_VCLEAN = $(patsubst %,%.vclean,$(MKDIRS))
@@ -77,8 +75,7 @@ global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 	Italy/new_italy.grd Italy/weights.grd \
 	Iran/iran.grd Iran/weights.grd \
 	Greece/greece.grd Greece/weights.grd \
-	Texas/texas.grd Texas/weights.grd \
-	Colombia/colombia.grd Colombia/weights.grd
+	Texas/texas.grd Texas/weights.grd
 	./src/insert_grd gin=Slope/global_vs30.grd gout=$@ \
 		grid1=California/california.grd gmask1=California/weights.grd \
 		grid2=Australia/aus.grd gmask2=Australia/weights.grd \
@@ -90,8 +87,7 @@ global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 		grid8=Italy/new_italy.grd gmask8=Italy/weights.grd \
 		grid9=Iran/iran.grd gmask9=Iran/weights.grd \
 		grid10=Greece/greece.grd gmask10=Greece/weights.grd \
-		grid11=Texas/texas.grd gmask11=Texas/weights.grd \
-		grid12=Colombia/colombia.grd gmask12=Colombia/weights.grd
+		grid11=Texas/texas.grd gmask11=Texas/weights.grd
 
 clean : $(MKDIRS_CLEAN)
 

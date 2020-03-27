@@ -21,7 +21,7 @@ NE_BASE_REGION = $(NE_WEST)/$(NE_EAST)/$(NE_SOUTH)/$(NE_NORTH)
 
 NE_EXT_REGION = $(NE_WEST_EXT)/$(NE_EAST_EXT)/$(NE_SOUTH_EXT)/$(NE_NORTH_EXT)
 
-NEUS_REGION = -75/-65/30/50
+NEUS_REGION = -85/-65/30/50
 
 .PHONY : all plots clean clean_plots veryclean plot_base_map \
          plot_vs30_landmask plot_clip_mask plot_smooth_clip_mask \

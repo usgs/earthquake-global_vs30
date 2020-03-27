@@ -23,6 +23,7 @@ INSERT_MAPS = Slope \
               PNW \
               Utah \
               Texas \
+              New_England \
                   Japan \
                   Taiwan \
                           NZ \
@@ -42,6 +43,7 @@ MKDIRS = src \
          PNW \
          Utah \
          Texas \
+         New_England \
                  Japan \
                  Taiwan \
                         NZ \
@@ -75,7 +77,8 @@ global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 	Italy/new_italy.grd Italy/weights.grd \
 	Iran/iran.grd Iran/weights.grd \
 	Greece/greece.grd Greece/weights.grd \
-	Texas/texas.grd Texas/weights.grd
+	Texas/texas.grd Texas/weights.grd \
+	New_England/new_england.grd New_England/weights.grd
 	./src/insert_grd gin=Slope/global_vs30.grd gout=$@ \
 		grid1=California/california.grd gmask1=California/weights.grd \
 		grid2=Australia/aus.grd gmask2=Australia/weights.grd \
@@ -87,7 +90,8 @@ global_vs30.grd : src/insert_grd Slope/global_vs30.grd \
 		grid8=Italy/new_italy.grd gmask8=Italy/weights.grd \
 		grid9=Iran/iran.grd gmask9=Iran/weights.grd \
 		grid10=Greece/greece.grd gmask10=Greece/weights.grd \
-		grid11=Texas/texas.grd gmask11=Texas/weights.grd
+		grid11=Texas/texas.grd gmask11=Texas/weights.grd \
+		grid12=New_England/new_england.grd gmask12=New_England/weights.grd
 
 clean : $(MKDIRS_CLEAN)
 
